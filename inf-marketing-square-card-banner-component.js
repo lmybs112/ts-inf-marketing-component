@@ -164,6 +164,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
 
             const img = document.createElement('img');
             img.src = item.image;
+            img.loading = 'lazy';
             img.style.cssText = `
                 width: 100%;
                 height: 100%;
