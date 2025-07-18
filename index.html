@@ -70,7 +70,7 @@
         function testBrand(brand, url) {
             // 如果正在初始化，阻止重複點擊
             if (isInitializing) {
-                console.log('正在初始化中，請稍候...');
+                // console.log('正在初始化中，請稍候...');
                 return;
             }
 
@@ -128,9 +128,9 @@
                 // 使用 Promise 監聽初始化完成
                 monitorInitialization(brand, url, statusDisplay);
 
-                console.log(`✅ 已初始化品牌: ${brand}, 網址: ${url}`);
+                // console.log(`✅ 已初始化品牌: ${brand}, 網址: ${url}`);
             } catch (error) {
-                console.error(`❌ 初始化失敗: ${brand}`, error);
+                // console.error(`❌ 初始化失敗: ${brand}`, error);
                 const statusLoading = statusDisplay.querySelector('.status-loading');
                 if (statusLoading) {
                     statusLoading.textContent = '初始化失敗';
@@ -178,11 +178,11 @@
                                 }
                                 
                                 // 在控制台輸出實際創建的組件信息
-                                console.log('實際創建的組件:', {
-                                    tagName: node.tagName,
-                                    componentType: node.tagName.toLowerCase(),
-                                    config: window.infMarketingManager?.config
-                                });
+                                // console.log('實際創建的組件:', {
+                                //     tagName: node.tagName,
+                                //     componentType: node.tagName.toLowerCase(),
+                                //     config: window.infMarketingManager?.config
+                                // });
                                 
                                 // 更新配置顯示 - 確保組件已創建後才顯示配置
                                 updateConfigDisplay(statusDisplay);
@@ -212,47 +212,102 @@
             // 開始監聽
             observer.observe(document.body, { childList: true, subtree: true });
 
-            // 定期檢查配置（每1秒檢查一次，最多檢查15次）
-            let checkCount = 0;
-            const configCheckInterval = setInterval(() => {
-                checkCount++;
-                
-                // 檢查配置是否可用
-                if (window.infMarketingManager && window.infMarketingManager.config) {
-                    updateConfigDisplay(statusDisplay);
+            // 使用事件監聽器替代輪詢檢查
+            const handleConfigReady = () => {
+                // 更新狀態顯示為成功
+                const statusLoading = statusDisplay.querySelector('.status-loading');
+                if (statusLoading) {
+                    statusLoading.textContent = '初始化完成';
+                    statusLoading.className = 'status-success';
                 }
                 
-                // 15秒後停止檢查
-                if (checkCount >= 15) {
-                    clearInterval(configCheckInterval);
-                observer.disconnect();
+                // 更新配置顯示
+                updateConfigDisplay(statusDisplay);
+                
+                // 清理事件監聽器
+                window.removeEventListener('infMarketingConfigReady', handleConfigReady);
+                window.removeEventListener('infMarketingConfigError', handleConfigError);
+                
+                // 清理 DOM 觀察器
+                if (currentObserver) {
+                    currentObserver.disconnect();
                     currentObserver = null;
-                    currentConfigCheckInterval = null;
-                    
-                    // 只有在狀態還是「載入中」時才顯示超時
+                }
+                
+                // 重置初始化狀態
+                isInitializing = false;
+                
+                // 啟用所有品牌按鈕
+                enableAllBrandButtons();
+            };
+
+            const handleConfigError = () => {
+                // 顯示錯誤狀態
+                const statusLoading = statusDisplay.querySelector('.status-loading');
+                if (statusLoading) {
+                    statusLoading.textContent = '初始化失敗';
+                    statusLoading.className = 'status-error';
+                }
+                
+                const configDisplay = statusDisplay.querySelector('.config-display');
+                if (configDisplay) {
+                    configDisplay.textContent = '配置載入失敗';
+                    configDisplay.className = 'config-display config-error';
+                }
+                
+                // 清理事件監聽器
+                window.removeEventListener('infMarketingConfigReady', handleConfigReady);
+                window.removeEventListener('infMarketingConfigError', handleConfigError);
+                
+                // 清理 DOM 觀察器
+                if (currentObserver) {
+                    currentObserver.disconnect();
+                    currentObserver = null;
+                }
+                
+                // 重置初始化狀態
+                isInitializing = false;
+                
+                // 啟用所有品牌按鈕
+                enableAllBrandButtons();
+            };
+
+            // 綁定事件監聽器
+            window.addEventListener('infMarketingConfigReady', handleConfigReady);
+            window.addEventListener('infMarketingConfigError', handleConfigError);
+
+            // 設置超時保護（60秒後自動清理）
+            const timeoutId = setTimeout(() => {
+                window.removeEventListener('infMarketingConfigReady', handleConfigReady);
+                window.removeEventListener('infMarketingConfigError', handleConfigError);
+                
+                if (currentObserver) {
+                    currentObserver.disconnect();
+                    currentObserver = null;
+                }
+                
+                // 顯示超時狀態
                 const statusLoading = statusDisplay.querySelector('.status-loading');
                 if (statusLoading && statusLoading.textContent === '載入中...') {
                     statusLoading.textContent = '初始化超時';
                     statusLoading.className = 'status-error';
                 }
-                    
-                    // 只有在配置還是「等待載入」時才顯示超時
-                    const configDisplay = statusDisplay.querySelector('.config-display');
-                    if (configDisplay && configDisplay.textContent === '等待載入...') {
-                        configDisplay.textContent = '配置載入超時';
-                        configDisplay.className = 'config-display config-error';
-                    }
-                    
-                    // 重置初始化狀態
-                    isInitializing = false;
-                    
-                    // 啟用所有品牌按鈕
-                    enableAllBrandButtons();
+                
+                const configDisplay = statusDisplay.querySelector('.config-display');
+                if (configDisplay && configDisplay.textContent === '等待載入...') {
+                    configDisplay.textContent = '配置載入超時';
+                    configDisplay.className = 'config-display config-error';
                 }
-            }, 1000);
+                
+                // 重置初始化狀態
+                isInitializing = false;
+                
+                // 啟用所有品牌按鈕
+                enableAllBrandButtons();
+            }, 60000);
 
-            // 保存 interval 到全局變量
-            currentConfigCheckInterval = configCheckInterval;
+            // 保存 timeout 到全局變量（用於清理）
+            currentConfigCheckInterval = timeoutId;
         }
 
         function updateConfigDisplay(statusDisplay) {
@@ -268,12 +323,12 @@
                     configDisplay.className = 'config-display config-loaded';
                     
                     // 在控制台輸出實際載入的配置，用於調試
-                    console.log('更新配置顯示:', {
-                        brand: currentBrand,
-                        bannerType: config.BannerType,
-                        config: config,
-                        timestamp: new Date().toLocaleTimeString()
-                    });
+                    // console.log('更新配置顯示:', {
+                    //     brand: currentBrand,
+                    //     bannerType: config.BannerType,
+                    //     config: config,
+                    //     timestamp: new Date().toLocaleTimeString()
+                    // });
                 }
             } else {
                 // 嘗試從控制台日誌中獲取配置（用於調試）

@@ -137,6 +137,15 @@ class InfMarketingComponentManager {
 
         } catch (error) {
             console.error('InfMarketingComponentManager 初始化失敗:', error);
+            
+            // 派發配置錯誤事件
+            window.dispatchEvent(new CustomEvent('infMarketingConfigError', {
+                detail: {
+                    brand: this.brand,
+                    error: error.message,
+                    config: this.config
+                }
+            }));
         }
     }
 
@@ -335,14 +344,23 @@ class InfMarketingComponentManager {
             this.configureFloatingButton();
         }
 
-        // 設置模態框 iframe 配置
+        // 設置模態框 iframe 配置（預載入並等待完成）
         await this.setupModalIframe();
 
         // 綁定事件
         this.bindComponentEvents();
 
-        // 添加到頁面
+        // 添加到頁面（iframe 已預載入完成）
         document.body.appendChild(this.currentComponent);
+
+        // 派發配置準備完成事件
+        window.dispatchEvent(new CustomEvent('infMarketingConfigReady', {
+            detail: {
+                brand: this.brand,
+                config: this.config,
+                component: this.currentComponent
+            }
+        }));
 
     }
 
@@ -466,12 +484,56 @@ class InfMarketingComponentManager {
             });
         }
 
-        if (modal.setIframeUrl) {
-            modal.setIframeUrl(iframeUrl);
-        }
+        // 預載入 iframe 並等待載入完成
+        await this.preloadIframe(modal, iframeUrl);
 
         this.modal = modal;
     }
+
+    /**
+     * 預載入 iframe 並等待載入完成
+     * @param {HTMLElement} modal - 模態框組件
+     * @param {string} iframeUrl - iframe URL
+     * @returns {Promise<void>}
+     */
+    async preloadIframe(modal, iframeUrl) {
+        return new Promise((resolve, reject) => {
+            // 設置超時時間（60秒）
+            const timeout = setTimeout(() => {
+                reject(new Error('iframe 載入超時'));
+            }, 60000);
+
+            // 監聽 iframe 載入完成事件
+            const handleIframeLoaded = (event) => {
+                clearTimeout(timeout);
+                modal.removeEventListener('inf-marketing-modal:iframe-loaded', handleIframeLoaded);
+                modal.removeEventListener('inf-marketing-modal:iframe-error', handleIframeError);
+                console.log('✅ iframe 預載入完成:', iframeUrl);
+                resolve();
+            };
+
+            // 監聽 iframe 載入失敗事件
+            const handleIframeError = (event) => {
+                clearTimeout(timeout);
+                modal.removeEventListener('inf-marketing-modal:iframe-loaded', handleIframeLoaded);
+                modal.removeEventListener('inf-marketing-modal:iframe-error', handleIframeError);
+                console.warn('⚠️ iframe 預載入失敗:', iframeUrl);
+                // 即使失敗也繼續，避免阻塞組件顯示
+                resolve();
+            };
+
+            // 綁定事件監聽器
+            modal.addEventListener('inf-marketing-modal:iframe-loaded', handleIframeLoaded);
+            modal.addEventListener('inf-marketing-modal:iframe-error', handleIframeError);
+
+            // 開始載入 iframe
+            if (modal.setIframeUrl) {
+                modal.setIframeUrl(iframeUrl);
+            }
+        });
+    }
+
+
 
     /**
      * 等待元素完全添加到 DOM

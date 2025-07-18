@@ -443,6 +443,19 @@ class InfMarketingModalComponent extends HTMLElement {
                 }
             }));
         };
+
+        // 添加 onerror 事件處理器
+        iframeElement.onerror = () => {
+            // 派發 iframe 載入失敗事件
+            this.dispatchEvent(new CustomEvent(`${componentName}:iframe-error`, {
+                bubbles: true,
+                composed: true,
+                detail: { 
+                    url: url,
+                    config: this.iframeConfig
+                }
+            }));
+        };
         
         // 將 iframe 添加到容器
         iframeContainer.appendChild(iframeElement);
