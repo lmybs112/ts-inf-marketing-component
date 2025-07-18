@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INF marketing component測試</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls">
+            <h3 class="controls-title">INF marketing component測試</h3>
+            
+            <div class="brand-buttons">
+                <h4>品牌測試</h4>
+                <div class="config-buttons">
+                    <button onclick="testBrand('OSTAMP', 'https://www.ostamp.com.tw/')" class="brand-btn jerscy">
+                        <span class="brand-name">OSTAMP</span>
+                        <span class="brand-desc">測試智慧選物</span>
+                    </button>
+                    <button onclick="testBrand('ALMI', 'https://www.almi.com.tw/')" class="brand-btn almi">
+                        <span class="brand-name">ALMI</span>
+                        <span class="brand-desc">測試智慧選物</span>
+                    </button>
+                    <button onclick="testBrand('OLIVO', 'https://www.olivo.com.tw/')" class="brand-btn olivo">
+                        <span class="brand-name">OLIVO</span>
+                        <span class="brand-desc">測試智慧選物</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="status-info">
+                <h4>狀態資訊</h4>
+                <div id="statusDisplay" class="status-display">
+                    請選擇品牌開始測試
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入營銷組件 -->
+    <script src="./inf-marketing-component.js"></script>
+    <script>
+        let currentBrand = null;
+        let currentUrl = null;
+
+        // 全局變量來追蹤當前的檢查 interval
+        let currentConfigCheckInterval = null;
+        let currentObserver = null;
+        let isInitializing = false; // 追蹤是否正在初始化
+
+        // 抓取目前網址的查詢參數
+        const params = new URLSearchParams(window.location.search);
+
+        // 取得 brand 參數
+        const urlBrand = params.get('brand');
+
+       if(urlBrand){
+         currentBrand = urlBrand
+         currentUrl = ''
+         testBrand(currentBrand, currentUrl);
+         document.querySelector('.brand-buttons').style.display = 'none'
+       }
+
+
+        function testBrand(brand, url) {
+            // 如果正在初始化，阻止重複點擊
+            if (isInitializing) {
+                console.log('正在初始化中，請稍候...');
+                return;
+            }
+
+            // 設置初始化狀態
+            isInitializing = true;
+            
+            // 禁用所有品牌按鈕
+            disableAllBrandButtons();
+
+            // 清理之前的檢查
+            if (currentConfigCheckInterval) {
+                clearInterval(currentConfigCheckInterval);
+                currentConfigCheckInterval = null;
+            }
+            if (currentObserver) {
+                currentObserver.disconnect();
+                currentObserver = null;
+            }
+
+
+
+            // 更新狀態顯示
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerHTML = `
+                <div class="status-item">
+                    <strong>品牌:</strong> ${brand}
+                </div>
+                <div class="status-item">
+                    <strong>網址:</strong> ${url}
+                </div>
+                <div class="status-item">
+                    <strong>狀態:</strong> <span class="status-loading">載入中...</span>
+                </div>
+                <div class="status-item">
+                    <strong>配置:</strong> <div class="config-display">等待載入...</div>
+                </div>
+            `;
+
+            // 更新當前品牌
+            currentBrand = brand;
+            currentUrl = url;
+
+            // 先銷毀現有的組件
+            if (window.infMarketingManager) {
+                window.infMarketingManager.destroy();
+            }
+
+            // 清理頁面上可能存在的舊組件
+            cleanupExistingComponents();
+
+            // 呼叫 initInfMarketing
+            try {
+                window.initInfMarketing(brand, url);
+                
+                // 使用 Promise 監聽初始化完成
+                monitorInitialization(brand, url, statusDisplay);
+
+                console.log(`✅ 已初始化品牌: ${brand}, 網址: ${url}`);
+            } catch (error) {
+                console.error(`❌ 初始化失敗: ${brand}`, error);
+                const statusLoading = statusDisplay.querySelector('.status-loading');
+                if (statusLoading) {
+                    statusLoading.textContent = '初始化失敗';
+                    statusLoading.className = 'status-error';
+                }
+                // 初始化失敗時重置狀態
+                isInitializing = false;
+            }
+        }
+
+        function cleanupExistingComponents() {
+            // 清理可能存在的營銷組件
+            const existingComponents = document.querySelectorAll([
+                'inf-marketing-popup-banner',
+                'inf-marketing-square-card-banner',
+                'inf-marketing-floating-button',
+                '#inf-smart-selection-modal'
+            ].join(','));
+
+            existingComponents.forEach(component => {
+                if (component && component.remove) {
+                    component.remove();
+                }
+            });
+        }
+
+        function monitorInitialization(brand, url, statusDisplay) {
+            
+            // 使用 MutationObserver 監聽組件創建
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            // 檢查是否為營銷組件
+                            if (node.tagName && (
+                                node.tagName.toLowerCase() === 'inf-marketing-popup-banner' ||
+                                node.tagName.toLowerCase() === 'inf-marketing-square-card-banner' ||
+                                node.tagName.toLowerCase() === 'inf-marketing-floating-button'
+                            )) {
+                                // 組件已創建，更新狀態
+                                const statusLoading = statusDisplay.querySelector('.status-loading');
+                                if (statusLoading) {
+                                    statusLoading.textContent = '已初始化';
+                                    statusLoading.className = 'status-success';
+                                }
+                                
+                                // 在控制台輸出實際創建的組件信息
+                                console.log('實際創建的組件:', {
+                                    tagName: node.tagName,
+                                    componentType: node.tagName.toLowerCase(),
+                                    config: window.infMarketingManager?.config
+                                });
+                                
+                                // 更新配置顯示 - 確保組件已創建後才顯示配置
+                                updateConfigDisplay(statusDisplay);
+                                
+                                // 清理檢查
+                                if (currentConfigCheckInterval) {
+                                    clearInterval(currentConfigCheckInterval);
+                                    currentConfigCheckInterval = null;
+                                }
+                                observer.disconnect();
+                                currentObserver = null;
+                                
+                                // 重置初始化狀態
+                                isInitializing = false;
+                                
+                                // 啟用所有品牌按鈕
+                                enableAllBrandButtons();
+                            }
+                        }
+                    });
+                });
+            });
+
+            // 保存 observer 到全局變量
+            currentObserver = observer;
+
+            // 開始監聽
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            // 定期檢查配置（每1秒檢查一次，最多檢查15次）
+            let checkCount = 0;
+            const configCheckInterval = setInterval(() => {
+                checkCount++;
+                
+                // 檢查配置是否可用
+                if (window.infMarketingManager && window.infMarketingManager.config) {
+                    updateConfigDisplay(statusDisplay);
+                }
+                
+                // 15秒後停止檢查
+                if (checkCount >= 15) {
+                    clearInterval(configCheckInterval);
+                observer.disconnect();
+                    currentObserver = null;
+                    currentConfigCheckInterval = null;
+                    
+                    // 只有在狀態還是「載入中」時才顯示超時
+                const statusLoading = statusDisplay.querySelector('.status-loading');
+                if (statusLoading && statusLoading.textContent === '載入中...') {
+                    statusLoading.textContent = '初始化超時';
+                    statusLoading.className = 'status-error';
+                }
+                    
+                    // 只有在配置還是「等待載入」時才顯示超時
+                    const configDisplay = statusDisplay.querySelector('.config-display');
+                    if (configDisplay && configDisplay.textContent === '等待載入...') {
+                        configDisplay.textContent = '配置載入超時';
+                        configDisplay.className = 'config-display config-error';
+                    }
+                    
+                    // 重置初始化狀態
+                    isInitializing = false;
+                    
+                    // 啟用所有品牌按鈕
+                    enableAllBrandButtons();
+                }
+            }, 1000);
+
+            // 保存 interval 到全局變量
+            currentConfigCheckInterval = configCheckInterval;
+        }
+
+        function updateConfigDisplay(statusDisplay) {
+            // 嘗試從全局管理器獲取配置
+            if (window.infMarketingManager && window.infMarketingManager.config) {
+                const config = window.infMarketingManager.config;
+                const configDisplay = statusDisplay.querySelector('.config-display');
+                
+                if (configDisplay) {
+                    // 格式化配置顯示
+                    const configText = formatConfig(config);
+                    configDisplay.innerHTML = configText;
+                    configDisplay.className = 'config-display config-loaded';
+                    
+                    // 在控制台輸出實際載入的配置，用於調試
+                    console.log('更新配置顯示:', {
+                        brand: currentBrand,
+                        bannerType: config.BannerType,
+                        config: config,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                }
+            } else {
+                // 嘗試從控制台日誌中獲取配置（用於調試）
+                console.log('無法獲取配置:', {
+                    brand: currentBrand,
+                    manager: window.infMarketingManager,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                // 如果無法獲取配置，顯示錯誤信息
+                const configDisplay = statusDisplay.querySelector('.config-display');
+                if (configDisplay) {
+                    configDisplay.textContent = '無法獲取配置 - 請檢查控制台';
+                    configDisplay.className = 'config-display config-error';
+                }
+            }
+        }
+
+        function disableAllBrandButtons() {
+            const brandButtons = document.querySelectorAll('.brand-btn');
+            brandButtons.forEach(button => {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+            });
+        }
+
+        function enableAllBrandButtons() {
+            const brandButtons = document.querySelectorAll('.brand-btn');
+            brandButtons.forEach(button => {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.style.cursor = 'pointer';
+            });
+        }
+
+        function formatConfig(config) {
+            if (!config) return '無配置資料';
+            
+            const configItems = [];
+            
+            // 顯示主要配置項目
+            if (config.BannerType) {
+                configItems.push(`
+                    <div class="config-item">
+                        <span class="config-key">按鈕類型</span>
+                        <span class="config-value">${config.BannerType}</span>
+                    </div>
+                `);
+            }
+            
+            if (config.Title) {
+                configItems.push(`
+                    <div class="config-item">
+                        <span class="config-key">文案標題</span>
+                        <span class="config-value">${config.Title}</span>
+                    </div>
+                `);
+            }
+            
+            if (config.Description) {
+                configItems.push(`
+                    <div class="config-item">
+                        <span class="config-key">文案描述</span>
+                        <span class="config-value">${config.Description}</span>
+                    </div>
+                `);
+            }
+            
+            if (config.Location) {
+                configItems.push(`
+                    <div class="config-item">
+                        <span class="config-key">顯示位置</span>
+                        <span class="config-value">${config.Location}</span>
+                    </div>
+                `);
+            }
+            
+            if (config.status !== undefined) {
+                const statusText = config.status ? '啟用' : '停用';
+                const statusClass = config.status ? 'status-success' : 'status-error';
+                configItems.push(`
+                    <div class="config-item">
+                        <span class="config-key">狀態</span>
+                        <span class="config-value ${statusClass}">${statusText}</span>
+                    </div>
+                `);
+            }
+            
+            // if (config.TimeValid && config.TimeValid.length >= 2) {
+            //     configItems.push(`
+            //         <div class="config-item">
+            //             <span class="config-key">有效期間</span>
+            //             <span class="config-value">${config.TimeValid[0]} ~ ${config.TimeValid[1]}</span>
+            //         </div>
+            //     `);
+            // }
+            
+            // 如果是 SquareCardBanner，顯示卡片選項
+            if (config.BannerType === 'SquareCardBanner' && config.CardOptions) {
+                // 顯示每個卡片的詳細內容
+                config.CardOptions.forEach((card, index) => {
+                    configItems.push(`
+                        <div class="config-item">
+                            <span class="config-key">${card.Title || '無標題'}</span>
+                            <span class="config-value">
+                                <div class="card-details">
+                                        ${card.image ? 
+                                            `<img src="${card.image}" alt="卡片圖片" class="card-image-preview" onerror="this.style.display='none'">` : 
+                                            '未設定'
+                                        }
+                                    </div>
+                                    ${card.url ? `<div><a href="${card.url}" target="_blank" class="card-link">${card.url}</a></div>` : ''}
+                                </div>
+                            </span>
+                        </div>
+                    `);
+                });
+            }
+            
+            // 如果是 TinyPopupBanner，顯示 CTA 相關配置
+            if (config.BannerType === 'TinyPopupBanner') {
+                if (config.CTA_text) {
+                    configItems.push(`
+                        <div class="config-item">
+                            <span class="config-key">CTA文字</span>
+                            <span class="config-value">${config.CTA_text}</span>
+                        </div>
+                    `);
+                }
+                if (config.CTA_color) {
+                    configItems.push(`
+                        <div class="config-item">
+                            <span class="config-key">CTA文字顏色</span>
+                            <span class="config-value">
+                                <span class="color-preview" style="background-color: ${config.CTA_color}"></span>
+                                ${config.CTA_color}
+                            </span>
+                        </div>
+                    `);
+                }
+                if (config.CTA_background) {
+                    configItems.push(`
+                        <div class="config-item">
+                            <span class="config-key">CTA背景顏色</span>
+                            <span class="config-value">
+                                <span class="color-preview" style="background-color: ${config.CTA_background}"></span>
+                                ${config.CTA_background}
+                            </span>
+                        </div>
+                    `);
+                }
+            }
+            
+            return configItems.join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 自定義配置（當 API 回傳的 config 為空時使用）
+            const SquareCardBanner = {
+                "CardOptions": [{
+                        "image": "https://myinffits.com/myinffits-media-assets/1749435978887_k177u6_hero-image-4.png",
+                        "Title": "智慧選物",
+                        "url": ""
+                    },
+                    {
+                        "image": "https://myinffits.com/myinffits-media-assets/1749435978887_k177u6_hero-image-4.png",
+                        "Title": "官網特惠",
+                        "url": "https://www.google.com"
+                    }
+                ],
+                "BannerType": "SquareCardBanner",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-08-12"
+                ],
+                "Location": "RightDown",
+                "status": true
+            };
+
+            const TinyPopupBanner = {
+                "CTA_color": "#FFFFFFFF",
+                "Description": "找到您的個人化專屬商品",
+                "BannerType": "TinyPopupBanner",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-09-12"
+                ],
+                "CTA_background": "#000000FF",
+                "Title": "精選購物之旅",
+                "CTA_text": "立即開始",
+                "Location": "RightDown",
+                "status": true
+            }
+
+            const FloatButton = {
+                "BannerType": "FloatButton",
+                "Location": "LeftDown",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-09-12"
+                ],
+                "status": true
+            }
+
+            //debug
+            // const customConfig = {
+            //     'SquareCardBanner': SquareCardBanner,
+            //     'TinyPopupBanner': TinyPopupBanner,
+            //     'FloatButton': FloatButton
+            // }
+
+            // 初始化營銷組件，傳入自定義配置
+            // window.initInfMarketing('JERSCY', 'https://www.jerscy.com.tw/');
+            // window.initInfMarketing('ALMI', 'https://www.almi.com.tw/');
+            // window.initInfMarketing('OLIVO', 'https://www.olivo.com.tw/');
+        });
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #fefefe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .controls-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 12px;
+        }
+
+        .brand-buttons h4,
+        .status-info h4 {
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .config-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .brand-btn {
+            padding: 12px 16px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #fff;
+            color: #333;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brand-btn:hover {
+            background-color: #333;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .brand-btn:active {
+            transform: scale(0.98);
+        }
+
+        .brand-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .brand-btn:disabled:hover {
+            background-color: #fff;
+            color: #333;
+            transform: none;
+        }
+
+        .brand-btn.jerscy:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .brand-btn.almi:hover {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .brand-btn.olivo:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .brand-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .brand-desc {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .status-info {
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+
+        .status-display {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .status-item {
+            margin-bottom: 6px;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-loading {
+            color: #f39c12;
+        }
+
+        .status-success {
+            color: #27ae60;
+        }
+
+        .status-error {
+            color: #e74c3c;
+        }
+
+        .config-display {
+            font-size: 11px;
+            line-height: 1.3;
+            color: #666;
+            max-height: 120px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 4px;
+        }
+
+        .config-display.config-loaded {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            max-height: 200px;
+            padding: 12px;
+        }
+
+        .config-display.config-error {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .config-key {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 80px;
+            margin-right: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-value {
+            color: #34495e;
+            word-break: break-word;
+            flex: 1;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .config-value.status-success {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .config-value.status-error {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .card-details {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .card-details div {
+            margin-bottom: 2px;
+        }
+
+        .card-details div:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-details strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .card-image-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            object-fit: cover;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .card-link {
+            color: #3498db;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 10px;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        /* 滾動條樣式 */
+        .controls::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .controls::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        .controls::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+        
+        .controls::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</body>
+
+</html>
