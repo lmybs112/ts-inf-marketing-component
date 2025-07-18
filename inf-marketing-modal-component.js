@@ -377,10 +377,11 @@ class InfMarketingModalComponent extends HTMLElement {
         // 恢復背景滾動
         document.body.style.overflow = '';
 
-        // 延遲清空 iframe 內容，避免在動畫過程中影響性能
-        setTimeout(() => {
-            this.clearIframe();
-        }, 300);
+        // 只隱藏 iframe 容器，不清空內容（保留以便重複使用）
+        const iframeContainer = this.$('#iframe-container');
+        if (iframeContainer) {
+            iframeContainer.style.display = 'none';
+        }
 
         // 派發隱藏事件
         this.dispatchEvent(new CustomEvent(`${componentName}:hide`, {
@@ -402,6 +403,23 @@ class InfMarketingModalComponent extends HTMLElement {
         
         if (!iframeContainer || !contentSlot) return;
 
+        // 檢查是否已經有相同的 URL 的 iframe
+        const existingIframe = iframeContainer.querySelector('iframe');
+        if (existingIframe && existingIframe.src === url && this.currentIframeUrl === url) {
+            // 如果 URL 相同且已存在，直接顯示現有的 iframe
+            iframeContainer.style.display = 'block';
+            contentSlot.style.display = 'none';
+            
+            // 派發 iframe 設置事件（重用現有 iframe，無需重新發送訊息）
+            this.dispatchEvent(new CustomEvent(`${componentName}:iframe-set`, {
+                bubbles: true,
+                composed: true,
+                detail: { url, reused: true }
+            }));
+            
+            return;
+        }
+
         // 清空容器並創建新的 iframe
         iframeContainer.innerHTML = '';
         
@@ -413,29 +431,17 @@ class InfMarketingModalComponent extends HTMLElement {
         
         // 添加 onload 事件處理器
         iframeElement.onload = () => {
-            const iframe_container = iframeElement.contentWindow;
-            const iframe_preview_obj = {
-                id: this.iframeConfig.id,
-                header: this.iframeConfig.header,
-                brand: this.iframeConfig.brand,
-            };
+            this.sendIframeMessage(iframeElement);
             
-            try {
-                console.log('iframe_preview_obj-------------', iframe_preview_obj);
-                iframe_container.postMessage(iframe_preview_obj, "*");
-                
-                // 派發 iframe 載入完成事件
-                this.dispatchEvent(new CustomEvent(`${componentName}:iframe-loaded`, {
-                    bubbles: true,
-                    composed: true,
-                    detail: { 
-                        url: url,
-                        config: iframe_preview_obj
-                    }
-                }));
-            } catch (error) {
-                console.warn('無法向 iframe 發送訊息:', error);
-            }
+            // 派發 iframe 載入完成事件
+            this.dispatchEvent(new CustomEvent(`${componentName}:iframe-loaded`, {
+                bubbles: true,
+                composed: true,
+                detail: { 
+                    url: url,
+                    config: this.iframeConfig
+                }
+            }));
         };
         
         // 將 iframe 添加到容器
@@ -451,12 +457,34 @@ class InfMarketingModalComponent extends HTMLElement {
         this.dispatchEvent(new CustomEvent(`${componentName}:iframe-set`, {
             bubbles: true,
             composed: true,
-            detail: { url }
+            detail: { url, reused: false }
         }));
     }
 
     /**
+     * 向 iframe 發送配置訊息
+     * @param {HTMLIFrameElement} iframeElement - iframe 元素
+     */
+    sendIframeMessage(iframeElement) {
+        const iframe_container = iframeElement.contentWindow;
+        const iframe_preview_obj = {
+            id: this.iframeConfig.id,
+            header: this.iframeConfig.header,
+            brand: this.iframeConfig.brand,
+        };
+        
+        try {
+            console.log('iframe_preview_obj-------------', iframe_preview_obj);
+            iframe_container.postMessage(iframe_preview_obj, "*");
+        } catch (error) {
+            console.warn('無法向 iframe 發送訊息:', error);
+        }
+    }
+
+    /**
      * 清空 iframe 內容
+     * 注意：此方法會完全清空 iframe，建議只在需要強制重新載入時使用
+     * 一般情況下，hide() 方法只會隱藏 iframe，保留內容以便重複使用
      */
     clearIframe() {
         const iframeContainer = this.$('#iframe-container');
@@ -472,6 +500,12 @@ class InfMarketingModalComponent extends HTMLElement {
         contentSlot.style.display = 'block';
 
         this.currentIframeUrl = null;
+        
+        // 派發 iframe 清空事件
+        this.dispatchEvent(new CustomEvent(`${componentName}:iframe-cleared`, {
+            bubbles: true,
+            composed: true
+        }));
     }
 
     /**
