@@ -210,6 +210,16 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     }
   }
 
+  // 設置彈窗 iframe URL（統一接口）
+  setModalIframeUrl(url) {
+    this.modalIframeUrl = url;
+    
+    // 如果 modal 已存在，立即設置
+    if (this._modal && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl(url);
+    }
+  }
+
   // 移除事件監聽器
   removeEventListeners() {
     const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
@@ -261,8 +271,14 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         this._resetModalToCenter();
       }
       
-      // 可自訂 iframe url 或 slot 內容
-      this._modal.show('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+      // 使用統一的 iframe URL 設置
+      if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+        this._modal.setIframeUrl(this.modalIframeUrl);
+      } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+        // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
+        this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+      }
+      this._modal.show();
     }
   }
 

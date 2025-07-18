@@ -435,9 +435,10 @@ class InfMarketingComponentManager {
 
         // 確定 iframe URL
         const iframeUrl = this.route.RouteDisplayMode === 'media' ?
-            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html' :
-            'https://ts-iframe-v2.vercel.app/iframe_container_module.html';
-
+            'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
+            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html'
+            ;
+        
         // 設置組件的 iframe URL
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
@@ -466,7 +467,7 @@ class InfMarketingComponentManager {
         }
 
         if (modal.setIframeUrl) {
-            // modal.setIframeUrl(iframeUrl);
+            modal.setIframeUrl(iframeUrl);
         }
 
         this.modal = modal;

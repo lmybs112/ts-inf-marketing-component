@@ -559,12 +559,11 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         
         // 確保組件已完全初始化後再調用方法
         if (modal.show && typeof modal.show === 'function') {
-            // 顯示彈窗
-            if (iframeUrl) {
-                modal.show(iframeUrl);
-            } else {
-                modal.show();
+            // 統一透過 setIframeUrl 方法設置 iframe，然後顯示彈窗
+            if (iframeUrl && modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
+                modal.setIframeUrl(iframeUrl);
             }
+            modal.show();
         } else {
             // 如果組件還沒完全載入，等待一段時間後重試
             setTimeout(() => {
@@ -578,11 +577,10 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                 }
                 
                 if (modal.show && typeof modal.show === 'function') {
-                    if (iframeUrl) {
-                        modal.show(iframeUrl);
-                    } else {
-                        modal.show();
+                    if (iframeUrl && modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
+                        modal.setIframeUrl(iframeUrl);
                     }
+                    modal.show();
                 } else {
                     console.error('彈窗組件初始化失敗，請檢查 inf-marketing-modal-component.js 是否正確載入');
                 }
