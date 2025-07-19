@@ -9,7 +9,7 @@
  * 或透過 JavaScript：
  * const modal = document.querySelector('#myModal');
  * 
- * // 設置 iframe 配置（可選）
+ * // 設置iframe配置（可選）
  * modal.setIframeConfig({
  *   id: '2025-05-29-18-00-13-2',
  *   brand: 'ALMI'
@@ -19,11 +19,11 @@
  * modal.setIframeId('custom-id-123');
  * modal.setIframeBrand('MyBrand');
  * 
- * // 顯示帶 iframe 的彈窗
+ * // 顯示帶iframe的彈窗
  * modal.setIframeUrl('https://example.com');
  * modal.show();
  * 
- * // 或直接顯示並設置 iframe
+ * // 或直接顯示並設置iframe
  * modal.show('https://example.com');
  */
 
@@ -44,7 +44,7 @@ template.innerHTML = /*html*/`
             --close-button-background: rgba(0, 0, 0, 0.6);
             --close-button-hover-background: rgba(255, 255, 255, 0.9);
             
-            /* 修復定位問題：移除 contain 屬性，使用強制定位 */
+            /* 修復定位問題：移除contain屬性，使用強制定位 */
             display: block;
             position: fixed !important;
             top: 0 !important;
@@ -490,7 +490,7 @@ class InfMarketingModalComponent extends HTMLElement {
             console.log('iframe_preview_obj-------------', iframe_preview_obj);
             iframe_container.postMessage(iframe_preview_obj, "*");
         } catch (error) {
-            console.warn('無法向 iframe 發送訊息:', error);
+                            console.warn('無法向iframe發送訊息:', error);
         }
     }
 

@@ -1,11 +1,11 @@
-// 我要把功能整合在這一隻 js 檔案中
-// 首先等待頁面加載完成後，先取得當前 url 動線資訊
-//POST https://api.inffits.com/httpmpi/mkt_products_involve
+// 智慧選物營銷組件管理器 - 整合所有營銷功能
+// 首先等待頁面載入完成後，先取得當前網址動線資訊
+// 向 API 發送 POST 請求：https://api.inffits.com/httpmpi/mkt_products_involve
 // {
 //     "Brand": "ALMI",
 //     "url": "ALMIhop.shoplineapp.com/products/chartb"
 // }
-// 取得當前 url 動線資訊回傳
+// 取得當前網址動線資訊回傳
 // 回傳格式如下
 //  {
 //     config: {
@@ -44,20 +44,20 @@
 //     }
 // ]
 // }
-// 取得回傳，再依照route[0].Route call 取得動線詳細資訊再
-//  設置 iframe
+// 取得回傳後，再依照route[0].Route取得動線詳細資訊
+// 然後設置iframe
 //  modal.setIframeConfig({
 //    id: route[0].Route,
 //    brand: 'ALMI'
 //  });
 
 // modal.setIframeUrl(route[0]?.RouteDisplayMode === 'media'? 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html' : 'https://ts-iframe-v2.vercel.app/iframe_container_module.html');
-// 依照 config BannerType 判斷要載入 inf-marketing-square-card-banner-component.js 還是 inf-marketing-popup-banner-component.js
-// TinyPopupBanner 載入 inf-marketing-popup-banner-component.js
-// SquareCardBanner 載入 inf-marketing-square-card-banner-component.js
+// 依照配置的BannerType判斷要載入哪個組件：
+// TinyPopupBanner 載入彈窗橫幅組件
+// SquareCardBanner 載入方形卡片橫幅組件
 
 /**
- * INF marketing component管理器
+ * 智慧選物營銷組件管理器
  * 負責整合所有營銷組件的載入和管理功能
  */
 class InfMarketingComponentManager {
@@ -67,7 +67,7 @@ class InfMarketingComponentManager {
         this.currentComponent = null;
         this.modal = null;
         this.isInitialized = false;
-        this.brand = null; // 新增：保存品牌參數
+        this.brand = null; // 保存品牌參數
 
         // 綁定方法到實例
         this.init = this.init.bind(this);
@@ -79,15 +79,15 @@ class InfMarketingComponentManager {
     /**
      * 初始化組件管理器
      * @param {string} brand 品牌名稱（必填）
-     * @param {string} [url] 網址（非必填，預設 currentUrl）
-     * @param {Object} [config] 自定義配置（非必填，當 API 回傳的 config 為空時使用）
+     * @param {string} [url] 網址（非必填，預設為當前網址）
+     * @param {Object} [config] 自定義配置（非必填，當API回傳的配置為空時使用）
      */
     async init(brand, url, config) {
         if (this.isInitialized) {
             return;
         }
         if (!brand || typeof brand !== 'string' || !brand.trim()) {
-            console.error('初始化失敗：brand 參數為必填且不可為空');
+            console.error('初始化失敗：品牌參數為必填且不可為空');
             return;
         }
         try {
@@ -152,7 +152,7 @@ class InfMarketingComponentManager {
     /**
      * 取得營銷資料
      * @param {string} brand 品牌名稱（必填）
-     * @param {string} [url] 網址（非必填，預設 currentUrl）
+     * @param {string} [url] 網址（非必填，預設為當前網址）
      * @returns {Promise<Object>} 回傳營銷配置和路由資料
      */
     async fetchMarketingData(brand, url) {
@@ -174,7 +174,7 @@ class InfMarketingComponentManager {
             });
 
             if (!response.ok) {
-                throw new Error(`API 請求失敗: ${response.status} ${response.statusText}`);
+                throw new Error(`API請求失敗: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -500,7 +500,7 @@ class InfMarketingComponentManager {
         return new Promise((resolve, reject) => {
             // 設置超時時間（60秒）
             const timeout = setTimeout(() => {
-                reject(new Error('iframe 載入超時'));
+                reject(new Error('iframe載入超時'));
             }, 60000);
 
             // 監聽 iframe 載入完成事件

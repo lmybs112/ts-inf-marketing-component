@@ -1,5 +1,5 @@
-// inf-marketing-floating-button-component.js
-// 封裝浮動按鈕，點擊時開啟/關閉 inf-marketing-modal 彈窗
+// 智慧選物浮動按鈕組件
+// 封裝浮動按鈕，點擊時開啟/關閉智慧選物模態框彈窗
 
 const FLOATING_BTN_STYLE = `
 .ai-pd-container {
@@ -243,7 +243,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           transform: ${positionStyles.transform};
         ">
           <div class="ai-pd-container__icon"></div>
-          <img class="ai-pd-container__icon--alert" src="https://raw.githubusercontent.com/infFITSDevelopment/pop-ad/refs/heads/main/icon-alert.svg" alt="alert" />
+          <img class="ai-pd-container__icon--alert" src="https://raw.githubusercontent.com/infFITSDevelopment/pop-ad/refs/heads/main/icon-alert.svg" alt="提醒" />
         </button>
       </div>
     `;

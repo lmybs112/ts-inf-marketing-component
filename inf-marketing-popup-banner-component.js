@@ -487,7 +487,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
     setupEventListeners() {
         const button = this.shadowRoot.querySelector('.inf-marketing-popup-banner');
         button.addEventListener('click', () => {
-            // 使用預設的智慧選物 URL
+            // 使用預設的智慧選物網址
             const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         });
@@ -511,7 +511,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         }, { passive: false });
     }
 
-    // 顯示智慧選物彈窗（與 square card banner 組件完全相同）
+    // 顯示智慧選物彈窗（與方形卡片橫幅組件完全相同）
     showSmartSelectionModal(iframeUrl = null) {
         // 尋找或創建獨立的彈窗組件
         let modal = document.querySelector('#inf-smart-selection-modal');
@@ -548,7 +548,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             document.body.appendChild(modal);
         }
         
-        // 設置 iframe 配置參數（如果組件支援）
+        // 設置iframe配置參數（如果組件支援）
         if (modal.setIframeConfig && typeof modal.setIframeConfig === 'function') {
             modal.setIframeConfig({
                 id: this.getAttribute('iframe-id') || '',
@@ -559,7 +559,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         
         // 確保組件已完全初始化後再調用方法
         if (modal.show && typeof modal.show === 'function') {
-            // 統一透過 setIframeUrl 方法設置 iframe，然後顯示彈窗
+            // 統一透過setIframeUrl方法設置iframe，然後顯示彈窗
             if (iframeUrl && modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
                 modal.setIframeUrl(iframeUrl);
             }
@@ -567,7 +567,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         } else {
             // 如果組件還沒完全載入，等待一段時間後重試
             setTimeout(() => {
-                // 設置 iframe 配置參數（重試時）
+                // 設置iframe配置參數（重試時）
                 if (modal.setIframeConfig && typeof modal.setIframeConfig === 'function') {
                     modal.setIframeConfig({
                         id: this.getAttribute('iframe-id') || '',
@@ -588,9 +588,9 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         }
     }
 
-    // 設置彈窗 iframe URL
+    // 設置彈窗iframe網址
     setModalIframeUrl(url) {
-        // 儲存 URL 供後續使用
+        // 儲存網址供後續使用
         this.modalIframeUrl = url;
         
         const modal = document.querySelector('#inf-smart-selection-modal');
