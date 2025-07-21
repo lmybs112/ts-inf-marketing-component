@@ -798,7 +798,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 }
 
                 .close-button:hover {
-                    background-color: rgba(255, 255, 255, 0.9);
+                    background-color: rgba(255, 255, 255, 0.5);
                     color: #333;
                     transform: scale(1.1);
                 }
@@ -847,19 +847,19 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 <div class="image-counter">1/1</div>
                 <button class="close-button" title="關閉">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M18 6L6 18M6 6L18 18" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
                 
                 <button class="nav-button prev" title="上一張">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M15 18L9 12L15 6" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
                 
                 <button class="nav-button next" title="下一張">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M9 18L15 12L9 6" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
                 
