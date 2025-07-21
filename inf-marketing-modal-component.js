@@ -173,7 +173,15 @@ template.innerHTML = /*html*/`
                 --modal-height: 365px;
                 --close-button-size: 32px;
             }
-            
+            .modal-content {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                right: auto !important;
+                bottom: auto !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+            }
             .modal-close-btn {
                 bottom: -40px;
                 font-size: 18px;
@@ -186,11 +194,9 @@ template.innerHTML = /*html*/`
                 --modal-height: 320px;
                 --close-button-size: 28px;
             }
-            
             .modal-content {
-                margin: 20px;
+                margin: 0 !important;
             }
-            
             .modal-close-btn {
                 bottom: -35px;
                 font-size: 16px;
