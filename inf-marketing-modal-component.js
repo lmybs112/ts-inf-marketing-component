@@ -221,6 +221,56 @@ template.innerHTML = /*html*/`
                 bottom: -40px;
             }
         }
+        /* 最兼容舊機型的 close-btn 樣式強化 */
+        .modal-close-btn {
+          width: 36px !important;
+          height: 36px !important;
+          min-width: 36px !important;
+          min-height: 36px !important;
+          max-width: 36px !important;
+          max-height: 36px !important;
+          border-radius: 50% !important;
+          box-sizing: border-box !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          /* 保留原本的 background，不覆蓋 */
+          /* background: inherit; */
+          border: none !important;
+          overflow: hidden !important;
+          line-height: 1 !important;
+          font-size: 20px !important;
+          position: absolute;
+          z-index: 15;
+        }
+        .modal-close-btn svg {
+          width: 60% !important;
+          height: 60% !important;
+          display: block !important;
+          margin: auto !important;
+          min-width: 0 !important;
+          min-height: 0 !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+          pointer-events: none;
+        }
+        @media (max-width: 480px) {
+          .modal-close-btn {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+            max-width: 28px !important;
+            max-height: 28px !important;
+            font-size: 16px !important;
+          }
+          .modal-close-btn svg {
+            width: 60% !important;
+            height: 60% !important;
+            }
+        }
     </style>
     
     <div class="modal-container" id="modal-container">

@@ -160,17 +160,6 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                         width: fit-content;
                         max-width: 120px;
                     }
-                    
-                    .close-button {
-                        width: 22px;
-                        height: 22px;
-                        top: -26px;
-                    }
-                    
-                    .close-button svg {
-                        width: 16px;
-                        height: 16px;
-                    }
                 }
 
                 @media (max-width: 360px) {
@@ -205,17 +194,6 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                         min-width:50px;
                         width: fit-content;
                         max-width: 120px;
-                    }
-                    
-                    .close-button {
-                        width: 20px;
-                        height: 20px;
-                        top: -24px;
-                    }
-                    
-                    .close-button svg {
-                        width: 14px;
-                        height: 14px;
                     }
                 }
 
@@ -334,22 +312,23 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
 
                 .close-button {
                     position: absolute;
-                    top: -30px;
+                    top: -32px;
                     right: 0px;
                     background-color: #d3d3d3;
                     border: none;
                     border-radius: 50%;
-                    width: 24px;
-                    height: 24px;
+                    width: 28px;
+                    height: 28px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 24px;
                     color: #fff;
                     cursor: pointer;
                     transition: background-color 0.3s ease;
                     z-index: 10;
+                    padding: 8px;
                 }
+
 
                 .close-button:hover {
                     background-color:rgb(178, 178, 178);
@@ -487,8 +466,8 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             </style>
             <div class="popup-container" data-position="${this.config.position}">
                 <button class="close-button" title="關閉">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                     <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
         <div class="popup-content-container">
