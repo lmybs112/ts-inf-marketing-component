@@ -119,8 +119,12 @@ template.innerHTML = /*html*/`
             color: #fff;
             cursor: pointer;
             border-radius: 50%;
-            width: var(--close-button-size);
-            height: var(--close-button-size);
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            max-width: 36px;
+            max-height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -129,6 +133,12 @@ template.innerHTML = /*html*/`
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .modal-close-btn svg {
+            width: 60%;
+            height: 60%;
+            display: block;
+            margin: auto;
         }
 
         .modal-close-btn:hover {
