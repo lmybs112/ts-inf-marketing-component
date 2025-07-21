@@ -126,6 +126,18 @@ class InfMarketingComponentManager {
             // 檢查狀態
             if (!this.config.status) {
                 console.log('組件狀態為關閉，不顯示', this.config);
+                
+                // 派發組件狀態關閉事件
+                window.dispatchEvent(new CustomEvent('infMarketingConfigReady', {
+                    detail: {
+                        brand: this.brand,
+                        config: this.config,
+                        status: 'disabled',
+                        message: '組件狀態為關閉'
+                    }
+                }));
+                
+                this.isInitialized = true;
                 return;
             }
 

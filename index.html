@@ -213,16 +213,33 @@
             observer.observe(document.body, { childList: true, subtree: true });
 
             // 使用事件監聽器替代輪詢檢查
-            const handleConfigReady = () => {
-                // 更新狀態顯示為成功
-                const statusLoading = statusDisplay.querySelector('.status-loading');
-                if (statusLoading) {
-                    statusLoading.textContent = '初始化完成';
-                    statusLoading.className = 'status-success';
+            const handleConfigReady = (event) => {
+                // 檢查是否為組件狀態關閉的情況
+                if (event.detail && event.detail.status === 'disabled') {
+                    // 更新狀態顯示為組件關閉
+                    const statusLoading = statusDisplay.querySelector('.status-loading');
+                    if (statusLoading) {
+                        statusLoading.textContent = '組件已關閉';
+                        statusLoading.className = 'status-disabled';
+                    }
+                    
+                    // 更新配置顯示
+                    const configDisplay = statusDisplay.querySelector('.config-display');
+                    if (configDisplay) {
+                        configDisplay.textContent = '組件狀態為關閉，不顯示';
+                        configDisplay.className = 'config-display config-disabled';
+                    }
+                } else {
+                    // 正常初始化完成的情況
+                    const statusLoading = statusDisplay.querySelector('.status-loading');
+                    if (statusLoading) {
+                        statusLoading.textContent = '初始化完成';
+                        statusLoading.className = 'status-success';
+                    }
+                    
+                    // 更新配置顯示
+                    updateConfigDisplay(statusDisplay);
                 }
-                
-                // 更新配置顯示
-                updateConfigDisplay(statusDisplay);
                 
                 // 清理事件監聽器
                 window.removeEventListener('infMarketingConfigReady', handleConfigReady);
@@ -714,6 +731,10 @@
             color: #e74c3c;
         }
 
+        .status-disabled {
+            color: #95a5a6;
+        }
+
         .config-display {
             font-size: 11px;
             line-height: 1.3;
@@ -738,6 +759,12 @@
             color: #e74c3c;
             background: rgba(231, 76, 60, 0.1);
             border-color: #e74c3c;
+        }
+
+        .config-display.config-disabled {
+            color: #95a5a6;
+            background: rgba(149, 165, 166, 0.1);
+            border-color: #95a5a6;
         }
 
         .config-item {
