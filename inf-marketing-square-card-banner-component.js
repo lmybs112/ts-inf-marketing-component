@@ -43,10 +43,13 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
     connectedCallback() {
         this.render();
         this.initializeComponent();
+        this.adjustModalHeightForMobile(); // 新增：初始化時調整
+        window.addEventListener('resize', this.adjustModalHeightForMobile.bind(this));
     }
 
     disconnectedCallback() {
         this.stopAutoplay();
+        window.removeEventListener('resize', this.adjustModalHeightForMobile.bind(this)); // 清理事件
     }
 
     // 更新樣式
@@ -865,6 +868,27 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
 
             <!-- 智慧選物彈窗已移至獨立的 inf-marketing-modal 組件 -->
         `;
+    }
+
+    /**
+     * 手機版動態調整 modal 高度，確保真正置中
+     */
+    adjustModalHeightForMobile() {
+        const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        // 取得可視高度（不含網址列）
+        const vh = window.innerHeight;
+        const modalContent = this.shadowRoot?.querySelector('.modal-content');
+        if (modalContent) {
+            // 設定最大高度為可視高度的 90%，避免貼邊
+            modalContent.style.maxHeight = Math.floor(vh * 0.9) + 'px';
+            modalContent.style.height = 'auto';
+            modalContent.style.top = '50%';
+            modalContent.style.left = '50%';
+            modalContent.style.transform = 'translate(-50%, -50%)';
+            modalContent.style.position = 'relative';
+        }
     }
 }
 
