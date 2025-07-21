@@ -50,7 +50,7 @@ template.innerHTML = /*html*/`
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
-            height: 100vh !important;
+            height: 100dvh !important; /* ← 改用 dvh，提升手機瀏覽器兼容性 */
             pointer-events: none;
             z-index: 20000 !important;
         }
@@ -172,11 +172,23 @@ template.innerHTML = /*html*/`
                 --modal-width: 365px;
                 --modal-height: 365px;
                 --close-button-size: 32px;
+                width: 100dvw !important; /* ← 改用 dvw */
+                height: 100dvh !important; /* ← 改用 dvh */
             }
             
             .modal-close-btn {
                 bottom: -40px;
                 font-size: 18px;
+            }
+
+            /* 手機版 Center 位置強制上下左右置中，與精選卡片一致 */
+            .modal-content {
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                bottom: auto !important;
+                right: auto !important;
+                /* 若有其他 transform，請合併處理 */
             }
         }
 
@@ -185,10 +197,17 @@ template.innerHTML = /*html*/`
                 --modal-width: 320px;
                 --modal-height: 320px;
                 --close-button-size: 28px;
+                width: 100dvw !important; /* ← 改用 dvw */
+                height: 100dvh !important; /* ← 改用 dvh */
             }
             
             .modal-content {
                 margin: 20px;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                bottom: auto !important;
+                right: auto !important;
             }
             
             .modal-close-btn {
