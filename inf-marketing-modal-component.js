@@ -169,8 +169,8 @@ template.innerHTML = /*html*/`
         /* 響應式設計 */
         @media (max-width: 480px) {
             :host {
-                --modal-width: 355px;
-                --modal-height: 355px;
+                --modal-width: 365px;
+                --modal-height: 365px;
                 --close-button-size: 32px;
             }
             
