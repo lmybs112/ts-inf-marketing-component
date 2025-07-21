@@ -50,7 +50,7 @@ template.innerHTML = /*html*/`
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
-            height: 100dvh !important; /* ← 改用 dvh，提升手機瀏覽器兼容性 */
+            height: 100vh !important;
             pointer-events: none;
             z-index: 20000 !important;
         }
@@ -88,7 +88,12 @@ template.innerHTML = /*html*/`
 
         .modal-wrapper {
             position: relative;
-            display: inline-block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            height: auto;
         }
 
         .modal-content {
@@ -102,6 +107,10 @@ template.innerHTML = /*html*/`
             transform: scale(0.7) translateY(50px);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: var(--modal-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-container.show .modal-content {
@@ -110,9 +119,9 @@ template.innerHTML = /*html*/`
 
         .modal-close-btn {
             position: absolute;
-            bottom: -50px;
             left: 50%;
-            transform: translateX(-50%);
+            top: 100%;
+            transform: translate(-50%, 16px); /* 距離彈窗底部 16px */
             background: var(--close-button-background);
             border: none;
             font-size: 20px;
@@ -169,26 +178,22 @@ template.innerHTML = /*html*/`
         /* 響應式設計 */
         @media (max-width: 480px) {
             :host {
-                --modal-width: 365px;
-                --modal-height: 365px;
+                --modal-width: 355px;
+                --modal-height: 355px;
                 --close-button-size: 32px;
-                width: 100dvw !important; /* ← 改用 dvw */
-                height: 100dvh !important; /* ← 改用 dvh */
             }
-            
-            .modal-close-btn {
-                bottom: -40px;
-                font-size: 18px;
-            }
-
-            /* 手機版 Center 位置強制上下左右置中，與精選卡片一致 */
             .modal-content {
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                bottom: auto !important;
-                right: auto !important;
-                /* 若有其他 transform，請合併處理 */
+                margin: 0;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                /* 保持 flex 置中 */
+            }
+            .modal-close-btn {
+                left: 50%;
+                top: 100%;
+                transform: translate(-50%, 12px); /* 手機版距離底部 12px */
             }
         }
 
@@ -197,22 +202,14 @@ template.innerHTML = /*html*/`
                 --modal-width: 320px;
                 --modal-height: 320px;
                 --close-button-size: 28px;
-                width: 100dvw !important; /* ← 改用 dvw */
-                height: 100dvh !important; /* ← 改用 dvh */
             }
-            
             .modal-content {
-                margin: 20px;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                bottom: auto !important;
-                right: auto !important;
+                margin: 0;
             }
-            
             .modal-close-btn {
-                bottom: -35px;
-                font-size: 16px;
+                left: 50%;
+                top: 100%;
+                transform: translate(-50%, 8px); /* 小手機版距離底部 8px */
             }
         }
     </style>
