@@ -56,6 +56,8 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             const width = this.getAttribute('width') || '300px';
             const height = this.getAttribute('height') || '300px';
             const positionStyle = this.getPositionStyle();
+            const positionTransform = this.getPositionTransform();
+            const showTransform = this.getShowTransform();
 
             infCard.style.width = width;
             infCard.style.height = height;
@@ -74,6 +76,13 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     infCard.style[property] = value;
                 }
             });
+
+            // 根據當前顯示狀態設置正確的 transform
+            if (this.isVisible) {
+                infCard.style.transform = showTransform;
+            } else {
+                infCard.style.transform = positionTransform;
+            }
         }
     }
 
@@ -644,11 +653,37 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         const positions = {
             'RightDown': 'bottom: 20px; right: 20px;',
             'LeftDown': 'bottom: 20px; left: 20px;',
-            'CenterDown': 'bottom: 20px; left: 50%; transform: translateX(-50%);',
-            'Center': 'top: 50%; left: 50%; transform: translate(-50%, -50%);'
+            'CenterDown': 'bottom: 20px; left: 50%;',
+            'Center': 'top: 50%; left: 50%;'
         };
 
         return positions[position] || positions['RightDown'];
+    }
+
+    // 獲取位置特定的 transform 樣式
+    getPositionTransform() {
+        const position = this.getAttribute('position') || 'RightDown';
+        const transforms = {
+            'RightDown': 'translateY(40px) scale(0.85)',
+            'LeftDown': 'translateY(40px) scale(0.85)',
+            'CenterDown': 'translateX(-50%) translateY(40px) scale(0.85)',
+            'Center': 'translate(-50%, -50%) translateY(40px) scale(0.85)'
+        };
+
+        return transforms[position] || transforms['RightDown'];
+    }
+
+    // 獲取顯示時的 transform 樣式
+    getShowTransform() {
+        const position = this.getAttribute('position') || 'RightDown';
+        const transforms = {
+            'RightDown': 'translateY(0) scale(1)',
+            'LeftDown': 'translateY(0) scale(1)',
+            'CenterDown': 'translateX(-50%) translateY(0) scale(1)',
+            'Center': 'translate(-50%, -50%) translateY(0) scale(1)'
+        };
+
+        return transforms[position] || transforms['RightDown'];
     }
 
     // 渲染組件
@@ -656,6 +691,8 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         const width = this.getAttribute('width') || '300px';
         const height = this.getAttribute('height') || '300px';
         const positionStyle = this.getPositionStyle();
+        const positionTransform = this.getPositionTransform();
+        const showTransform = this.getShowTransform();
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -673,7 +710,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     border-radius: 8px;
                     overflow: hidden;
                     opacity: 0;
-                    transform: translateY(40px) scale(0.85);
+                    transform: ${positionTransform};
                     transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                     z-index: 10000;
@@ -683,7 +720,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
 
                 #inf-marketing-square-card-banner.show {
                     opacity: 1;
-                    transform: translateY(0) scale(1);
+                    transform: ${showTransform};
                 }
 
                 .slide-container {
