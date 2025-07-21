@@ -60,7 +60,9 @@ template.innerHTML = /*html*/`
             top: 0 !important;
             left: 0 !important;
             width: 100% !important;
-            height: 100% !important;
+            /* 使用 100dvh 以正確考慮手機瀏覽器網址列高度 */
+            height: 100dvh !important;
+            min-height: 100vh !important; /* fallback for older browsers */
             display: flex;
             align-items: center;
             justify-content: center;
