@@ -183,6 +183,9 @@ template.innerHTML = /*html*/`
                 margin: 0 !important;
             }
             .modal-close-btn {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
                 bottom: -40px;
                 font-size: 18px;
             }
@@ -198,6 +201,9 @@ template.innerHTML = /*html*/`
                 margin: 0 !important;
             }
             .modal-close-btn {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
                 bottom: -35px;
                 font-size: 16px;
             }
