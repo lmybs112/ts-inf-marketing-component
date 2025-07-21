@@ -133,7 +133,7 @@ class InfMarketingComponentManager {
             await this.loadComponent();
 
             this.isInitialized = true;
-            console.log('InfMarketingComponentManager 初始化完成');
+            // console.log('InfMarketingComponentManager 初始化完成');
 
         } catch (error) {
             console.error('InfMarketingComponentManager 初始化失敗:', error);

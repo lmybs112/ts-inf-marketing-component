@@ -487,7 +487,6 @@ class InfMarketingModalComponent extends HTMLElement {
         };
         
         try {
-            console.log('iframe_preview_obj-------------', iframe_preview_obj);
             iframe_container.postMessage(iframe_preview_obj, "*");
         } catch (error) {
             console.warn('無法向 iframe 發送訊息:', error);
