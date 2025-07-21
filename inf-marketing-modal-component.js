@@ -96,6 +96,14 @@ template.innerHTML = /*html*/`
             justify-content: center;
             width: auto;
             height: auto;
+            padding-bottom: 48px; /* 預留關閉按鈕高度，避免彈窗本體被推下 */
+        }
+
+        @media (max-width: 480px) {
+            .modal-wrapper {
+                // padding-bottom: 40px; /* 手機版預留較小空間 */
+                padding-bottom: 0px; /* 手機版預留較小空間 */
+            }
         }
 
         .modal-content {
