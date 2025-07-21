@@ -60,9 +60,7 @@ template.innerHTML = /*html*/`
             top: 0 !important;
             left: 0 !important;
             width: 100% !important;
-            /* 使用 100dvh 以正確考慮手機瀏覽器網址列高度 */
-            height: 100dvh !important;
-            min-height: 100vh !important; /* fallback for older browsers */
+            height: 100% !important;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -90,20 +88,7 @@ template.innerHTML = /*html*/`
 
         .modal-wrapper {
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: auto;
-            height: auto;
-            padding-bottom: 48px; /* 預留關閉按鈕高度，避免彈窗本體被推下 */
-        }
-
-        @media (max-width: 480px) {
-            .modal-wrapper {
-                // padding-bottom: 40px; /* 手機版預留較小空間 */
-                padding-bottom: 0px; /* 手機版預留較小空間 */
-            }
+            display: inline-block;
         }
 
         .modal-content {
@@ -117,10 +102,6 @@ template.innerHTML = /*html*/`
             transform: scale(0.7) translateY(50px);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: var(--modal-shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
 
         .modal-container.show .modal-content {
@@ -129,9 +110,9 @@ template.innerHTML = /*html*/`
 
         .modal-close-btn {
             position: absolute;
+            bottom: -50px;
             left: 50%;
-            top: 100%;
-            transform: translate(-50%, 16px); /* 距離彈窗底部 16px */
+            transform: translateX(-50%);
             background: var(--close-button-background);
             border: none;
             font-size: 20px;
@@ -188,22 +169,14 @@ template.innerHTML = /*html*/`
         /* 響應式設計 */
         @media (max-width: 480px) {
             :host {
-                --modal-width: 355px;
-                --modal-height: 355px;
+                --modal-width: 365px;
+                --modal-height: 365px;
                 --close-button-size: 32px;
             }
-            .modal-content {
-                margin: 0;
-                left: 0;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                /* 保持 flex 置中 */
-            }
+            
             .modal-close-btn {
-                left: 50%;
-                top: 100%;
-                transform: translate(-50%, 12px); /* 手機版距離底部 12px */
+                bottom: -40px;
+                font-size: 18px;
             }
         }
 
@@ -213,13 +186,29 @@ template.innerHTML = /*html*/`
                 --modal-height: 320px;
                 --close-button-size: 28px;
             }
+            
             .modal-content {
-                margin: 0;
+                margin: 20px;
+            }
+            
+            .modal-close-btn {
+                bottom: -35px;
+                font-size: 16px;
+            }
+        }
+        /* 新增：手機版動態視窗高度，確保上下置中 */
+        @media (max-width: 480px) {
+            .modal-container {
+                min-height: 100dvh !important;
+                height: 100dvh !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .modal-content {
+                margin: 0 auto;
             }
             .modal-close-btn {
-                left: 50%;
-                top: 100%;
-                transform: translate(-50%, 8px); /* 小手機版距離底部 8px */
+                bottom: -40px;
             }
         }
     </style>
