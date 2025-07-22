@@ -306,7 +306,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       modalOverlay.style.display = 'block';
     }
     if (closeBtn) {
-      closeBtn.style.display = 'flex';
+      closeBtn.style.setProperty('display', 'none', 'important');
     }
   }
 
@@ -368,7 +368,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       modalOverlay.style.display = 'none';
     }
     if (closeBtn) {
-      closeBtn.style.display = 'none';
+      closeBtn.style.setProperty('display', 'none', 'important');
     }
   }
 
@@ -430,7 +430,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       modalOverlay.style.display = 'none';
     }
     if (closeBtn) {
-      closeBtn.style.display = 'none';
+      closeBtn.style.setProperty('display', 'none', 'important');
     }
   }
 }
