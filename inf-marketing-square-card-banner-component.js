@@ -719,6 +719,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     z-index: 10000;
                     user-select: none;
                     touch-action: pan-y pinch-zoom;
+                    background-color: #fff;
                 }
 
                 #inf-marketing-square-card-banner.show {
