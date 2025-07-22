@@ -520,7 +520,7 @@ class InfMarketingComponentManager {
                 clearTimeout(timeout);
                 modal.removeEventListener('inf-marketing-modal:iframe-loaded', handleIframeLoaded);
                 modal.removeEventListener('inf-marketing-modal:iframe-error', handleIframeError);
-                console.log('✅ iframe 預載入完成:', iframeUrl);
+                // console.log('✅ iframe 預載入完成:', iframeUrl);
                 resolve();
             };
 
@@ -529,7 +529,7 @@ class InfMarketingComponentManager {
                 clearTimeout(timeout);
                 modal.removeEventListener('inf-marketing-modal:iframe-loaded', handleIframeLoaded);
                 modal.removeEventListener('inf-marketing-modal:iframe-error', handleIframeError);
-                console.warn('⚠️ iframe 預載入失敗:', iframeUrl);
+                // console.warn('⚠️ iframe 預載入失敗:', iframeUrl);
                 // 即使失敗也繼續，避免阻塞組件顯示
                 resolve();
             };
