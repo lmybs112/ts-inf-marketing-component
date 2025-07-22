@@ -248,7 +248,6 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         
         // 監聽 iframe 回傳值 type === 'result'
         if (type === 'result') {
-          console.log('value', event.data.value);
           if (value) {
             // 有搜尋結果時，記錄狀態並在彈窗關閉時顯示結果狀態
             this._hasResult = true;
