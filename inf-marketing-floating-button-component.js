@@ -438,7 +438,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       modalOverlay.style.display = 'block';
     }
     if (closeBtn) {
-      closeBtn.style.setProperty('display', 'flex', 'important');
+      closeBtn.style.setProperty('display', 'none', 'important');
     }
   }
 
