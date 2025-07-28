@@ -686,7 +686,8 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             buttonText: '立即開始',
             buttonColor: '#ddd',
             buttonTextColor: '#1E1E19',
-            todayDisplayMode: false // 預設顯示 checkbox
+            todayDisplayMode: false, // 預設不顯示 checkbox
+            TimeValid: null // 時間有效性驗證
         };
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
     }
@@ -696,6 +697,23 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         const todayDisplayMode = this.getAttribute('today-display-mode');
         this.config.todayDisplayMode = todayDisplayMode !== 'false';
         
+        // 讀取 TimeValid 屬性
+        const timeValidAttr = this.getAttribute('time-valid');
+        if (timeValidAttr) {
+            try {
+                // 嘗試解析為 JSON（陣列格式）
+                this.config.TimeValid = JSON.parse(timeValidAttr);
+            } catch (e) {
+                // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+                this.config.TimeValid = timeValidAttr;
+            }
+        }
+        
+        // 檢查時間有效性
+        if (!this.isValidTimeRange()) {
+            return; // 如果不在有效時間範圍內，則不渲染組件
+        }
+        
         // 檢查用戶是否選擇了「今日不再顯示」
         if (this.shouldHideToday()) {
             return; // 如果用戶選擇了今日不再顯示，則不渲染組件
@@ -703,6 +721,46 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         
         this.render();
         this.setupEventListeners();
+    }
+
+    /**
+     * 檢查時間有效性
+     * @returns {boolean} 是否在有效時間範圍內
+     */
+    isValidTimeRange() {
+        if (!this.config.TimeValid) {
+            return true; // 如果沒有設定時間限制，則視為有效
+        }
+
+        let startDate, endDate;
+
+        // 處理字串格式 "2025-07-23~2025-08-01"
+        if (typeof this.config.TimeValid === 'string') {
+            const parts = this.config.TimeValid.split('~');
+            if (parts.length === 2) {
+                startDate = new Date(parts[0]);
+                endDate = new Date(parts[1]);
+            } else {
+                return true; // 格式不正確，視為有效
+            }
+        }
+        // 處理陣列格式 ["2025-07-23", "2025-08-01"]
+        else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+            startDate = new Date(this.config.TimeValid[0]);
+            endDate = new Date(this.config.TimeValid[1]);
+        }
+        else {
+            return true; // 格式不正確，視為有效
+        }
+
+        // 檢查日期是否有效
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.warn('TimeValid 日期格式無效:', this.config.TimeValid);
+            return true; // 日期無效，視為有效
+        }
+
+        const now = new Date();
+        return now >= startDate && now <= endDate;
     }
 
     shouldHideToday() {
@@ -716,7 +774,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color', 'today-display-mode'];
+        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color', 'today-display-mode', 'time-valid'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -743,7 +801,31 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                 case 'today-display-mode':
                     this.config.todayDisplayMode = newValue === 'true';
                     break;
+                case 'time-valid':
+                    if (newValue) {
+                        try {
+                            // 嘗試解析為 JSON（陣列格式）
+                            this.config.TimeValid = JSON.parse(newValue);
+                        } catch (e) {
+                            // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+                            this.config.TimeValid = newValue;
+                        }
+                    } else {
+                        this.config.TimeValid = null;
+                    }
+                    break;
             }
+            
+            // 檢查時間有效性
+            if (!this.isValidTimeRange()) {
+                // 如果不在有效時間範圍內，隱藏組件
+                this.style.display = 'none';
+                return;
+            } else {
+                // 如果在有效時間範圍內，顯示組件
+                this.style.display = 'block';
+            }
+            
             this.render();
             this.setupEventListeners(); // 重新渲染後重新綁定事件監聽器
         }
@@ -1447,7 +1529,8 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         this.autoplayTimer = null;
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
         this.config = {
-            todayDisplayMode: true // 預設顯示 checkbox
+            todayDisplayMode: true, // 預設顯示 checkbox
+            TimeValid: null // 時間有效性驗證
         };
 
         // 拖拽相關變數
@@ -1459,7 +1542,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed', 'today-display-mode'];
+        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed', 'today-display-mode', 'time-valid'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -1478,6 +1561,30 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             } else if (name === 'today-display-mode') {
                 this.config.todayDisplayMode = newValue === 'true';
                 this.render();
+            } else if (name === 'time-valid') {
+                if (newValue) {
+                    try {
+                        // 嘗試解析為 JSON（陣列格式）
+                        this.config.TimeValid = JSON.parse(newValue);
+                    } catch (e) {
+                        // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+                        this.config.TimeValid = newValue;
+                    }
+                } else {
+                    this.config.TimeValid = null;
+                }
+                
+                // 檢查時間有效性
+                if (!this.isValidTimeRange()) {
+                    // 如果不在有效時間範圍內，隱藏組件
+                    this.style.display = 'none';
+                    return;
+                } else {
+                    // 如果在有效時間範圍內，顯示組件
+                    this.style.display = 'block';
+                }
+                
+                this.render();
             }
         }
     }
@@ -1486,6 +1593,23 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         // 讀取 today-display-mode 屬性
         const todayDisplayMode = this.getAttribute('today-display-mode');
         this.config.todayDisplayMode = todayDisplayMode !== 'false';
+        
+        // 讀取 TimeValid 屬性
+        const timeValidAttr = this.getAttribute('time-valid');
+        if (timeValidAttr) {
+            try {
+                // 嘗試解析為 JSON（陣列格式）
+                this.config.TimeValid = JSON.parse(timeValidAttr);
+            } catch (e) {
+                // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+                this.config.TimeValid = timeValidAttr;
+            }
+        }
+        
+        // 檢查時間有效性
+        if (!this.isValidTimeRange()) {
+            return; // 如果不在有效時間範圍內，則不渲染組件
+        }
         
         // 檢查用戶是否選擇了「今日不再顯示」
         if (this.shouldHideToday()) {
@@ -1511,6 +1635,46 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
     disconnectedCallback() {
         this.stopAutoplay();
         window.removeEventListener('resize', this.adjustModalHeightForMobile.bind(this)); // 清理事件
+    }
+
+    /**
+     * 檢查時間有效性
+     * @returns {boolean} 是否在有效時間範圍內
+     */
+    isValidTimeRange() {
+        if (!this.config.TimeValid) {
+            return true; // 如果沒有設定時間限制，則視為有效
+        }
+
+        let startDate, endDate;
+
+        // 處理字串格式 "2025-07-23~2025-08-01"
+        if (typeof this.config.TimeValid === 'string') {
+            const parts = this.config.TimeValid.split('~');
+            if (parts.length === 2) {
+                startDate = new Date(parts[0]);
+                endDate = new Date(parts[1]);
+            } else {
+                return true; // 格式不正確，視為有效
+            }
+        }
+        // 處理陣列格式 ["2025-07-23", "2025-08-01"]
+        else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+            startDate = new Date(this.config.TimeValid[0]);
+            endDate = new Date(this.config.TimeValid[1]);
+        }
+        else {
+            return true; // 格式不正確，視為有效
+        }
+
+        // 檢查日期是否有效
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.warn('TimeValid 日期格式無效:', this.config.TimeValid);
+            return true; // 日期無效，視為有效
+        }
+
+        const now = new Date();
+        return now >= startDate && now <= endDate;
     }
 
     // 更新樣式
@@ -2172,6 +2336,11 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         const positionStyle = this.getPositionStyle();
         const positionTransform = this.getPositionTransform();
         const showTransform = this.getShowTransform();
+        
+        // 為了兼容 CSS 中的 positionStyles 引用，創建一個模擬的 positionStyles 對象
+        const positionStyles = {
+            transform: positionTransform
+        };
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -2388,7 +2557,135 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     }
                 }
 
-                /* 智慧選物彈窗樣式已移至獨立的 inf-marketing-modal 組件 */
+                /* 添加懸浮動畫效果 */
+                .popup-container::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+                    pointer-events: none;
+                    animation: popupGlow 6s ease-in-out infinite;
+                }
+
+                /* 輕微發光效果 */
+                @keyframes popupGlow {
+                    0%, 100% {
+                        box-shadow: 0 0 15px rgba(252, 252, 248, 0.2);
+                    }
+                    50% {
+                        box-shadow: 0 0 25px rgba(252, 252, 248, 0.4);
+                    }
+                }
+
+                /* 添加連續的輕微浮動效果 */
+                @keyframes continuousFloat {
+                    0%, 100% {
+                        transform: ${positionStyles.transform === 'none' ? 'translateY(0)' : positionStyles.transform + ' translateY(0)'};
+                    }
+                    50% {
+                        transform: ${positionStyles.transform === 'none' ? 'translateY(-2px)' : positionStyles.transform + ' translateY(-2px)'};
+                    }
+                }
+
+                /* 從右下角進入動畫 */
+                @keyframes popupEnterBottomRight {
+                    0% {
+                        transform: translateY(120px);
+                        opacity: 0;
+                    }
+                    30% {
+                        transform: translateY(80px);
+                        opacity: 0.3;
+                    }
+                    60% {
+                        transform: translateY(-8px);
+                        opacity: 0.8;
+                    }
+                    80% {
+                        transform: translateY(4px);
+                        opacity: 0.95;
+                    }
+                    100% {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                /* 從左下角進入動畫 */
+                @keyframes popupEnterBottomLeft {
+                    0% {
+                        transform: translateY(120px);
+                        opacity: 0;
+                    }
+                    30% {
+                        transform: translateY(80px);
+                        opacity: 0.3;
+                    }
+                    60% {
+                        transform: translateY(-8px);
+                        opacity: 0.8;
+                    }
+                    80% {
+                        transform: translateY(4px);
+                        opacity: 0.95;
+                    }
+                    100% {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                /* 從正下方進入動畫 */
+                @keyframes popupEnterBottomCenter {
+                    0% {
+                        transform: translateX(-50%) translateY(120px);
+                        opacity: 0;
+                    }
+                    30% {
+                        transform: translateX(-50%) translateY(80px);
+                        opacity: 0.3;
+                    }
+                    60% {
+                        transform: translateX(-50%) translateY(-8px);
+                        opacity: 0.8;
+                    }
+                    80% {
+                        transform: translateX(-50%) translateY(4px);
+                        opacity: 0.95;
+                    }
+                    100% {
+                        transform: translateX(-50%) translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                /* 從正中間進入動畫 */
+                @keyframes popupEnterCenter {
+                    0% {
+                        transform: translate(-50%, -50%) scale(0.8);
+                        opacity: 0;
+                    }
+                    30% {
+                        transform: translate(-50%, -50%) scale(0.9);
+                        opacity: 0.3;
+                    }
+                    60% {
+                        transform: translate(-50%, -50%) scale(1.05);
+                        opacity: 0.8;
+                    }
+                    80% {
+                        transform: translate(-50%, -50%) scale(0.98);
+                        opacity: 0.95;
+                    }
+                    100% {
+                        transform: translate(-50%, -50%) scale(1);
+                        opacity: 1;
+                    }
+                }
             </style>
             
             <div id="inf-marketing-square-card-banner">
@@ -2579,19 +2876,63 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._onButtonClick = this._onButtonClick.bind(this);
     this._isModalOpen = false; // 追蹤彈窗狀態
     this._hasResult = false; // 追蹤是否有搜尋結果
+    this.config = {
+      TimeValid: null // 時間有效性驗證
+    };
   }
 
   static get observedAttributes() {
-    return ['position'];
+    return ['position', 'time-valid'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue && name === 'position') {
-      this.updatePosition();
+    if (oldValue !== newValue) {
+      if (name === 'position') {
+        this.updatePosition();
+      } else if (name === 'time-valid') {
+        if (newValue) {
+          try {
+            // 嘗試解析為 JSON（陣列格式）
+            this.config.TimeValid = JSON.parse(newValue);
+          } catch (e) {
+            // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+            this.config.TimeValid = newValue;
+          }
+        } else {
+          this.config.TimeValid = null;
+        }
+        
+        // 檢查時間有效性
+        if (!this.isValidTimeRange()) {
+          // 如果不在有效時間範圍內，隱藏組件
+          this.style.display = 'none';
+          return;
+        } else {
+          // 如果在有效時間範圍內，顯示組件
+          this.style.display = 'block';
+        }
+      }
     }
   }
 
   connectedCallback() {
+    // 讀取 TimeValid 屬性
+    const timeValidAttr = this.getAttribute('time-valid');
+    if (timeValidAttr) {
+      try {
+        // 嘗試解析為 JSON（陣列格式）
+        this.config.TimeValid = JSON.parse(timeValidAttr);
+      } catch (e) {
+        // 如果不是 JSON 格式，直接使用字串（如 "2025-07-23~2025-08-01"）
+        this.config.TimeValid = timeValidAttr;
+      }
+    }
+    
+    // 檢查時間有效性
+    if (!this.isValidTimeRange()) {
+      return; // 如果不在有效時間範圍內，則不渲染組件
+    }
+    
     this.render();
     this.setupEventListeners();
     
@@ -2608,6 +2949,46 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     
     // 監聽 iframe 消息
     this._setupIframeMessageListener();
+  }
+
+  /**
+   * 檢查時間有效性
+   * @returns {boolean} 是否在有效時間範圍內
+   */
+  isValidTimeRange() {
+    if (!this.config.TimeValid) {
+      return true; // 如果沒有設定時間限制，則視為有效
+    }
+
+    let startDate, endDate;
+
+    // 處理字串格式 "2025-07-23~2025-08-01"
+    if (typeof this.config.TimeValid === 'string') {
+      const parts = this.config.TimeValid.split('~');
+      if (parts.length === 2) {
+        startDate = new Date(parts[0]);
+        endDate = new Date(parts[1]);
+      } else {
+        return true; // 格式不正確，視為有效
+      }
+    }
+    // 處理陣列格式 ["2025-07-23", "2025-08-01"]
+    else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+      startDate = new Date(this.config.TimeValid[0]);
+      endDate = new Date(this.config.TimeValid[1]);
+    }
+    else {
+      return true; // 格式不正確，視為有效
+    }
+
+    // 檢查日期是否有效
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      console.warn('TimeValid 日期格式無效:', this.config.TimeValid);
+      return true; // 日期無效，視為有效
+    }
+
+    const now = new Date();
+    return now >= startDate && now <= endDate;
   }
 
   disconnectedCallback() {
@@ -3089,6 +3470,23 @@ class InfMarketingComponentManager {
                 return;
             }
 
+            // 檢查時間有效性
+            if (!this.isValidTimeRange()) {
+                // console.log('組件不在有效時間範圍內，不顯示', this.config);
+                
+                window.dispatchEvent(new CustomEvent('infMarketingConfigReady', {
+                    detail: {
+                        brand: this.brand,
+                        config: this.config,
+                        status: 'time_invalid',
+                        message: '組件不在有效時間範圍內'
+                    }
+                }));
+                
+                this.isInitialized = true;
+                return;
+            }
+
             await this.loadComponent();
 
             this.isInitialized = true;
@@ -3104,6 +3502,46 @@ class InfMarketingComponentManager {
                 }
             }));
         }
+    }
+
+    /**
+     * 檢查時間有效性
+     * @returns {boolean} 是否在有效時間範圍內
+     */
+    isValidTimeRange() {
+        if (!this.config.TimeValid) {
+            return true; // 如果沒有設定時間限制，則視為有效
+        }
+
+        let startDate, endDate;
+
+        // 處理字串格式 "2025-07-23~2025-08-01"
+        if (typeof this.config.TimeValid === 'string') {
+            const parts = this.config.TimeValid.split('~');
+            if (parts.length === 2) {
+                startDate = new Date(parts[0]);
+                endDate = new Date(parts[1]);
+            } else {
+                return true; // 格式不正確，視為有效
+            }
+        }
+        // 處理陣列格式 ["2025-07-23", "2025-08-01"]
+        else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+            startDate = new Date(this.config.TimeValid[0]);
+            endDate = new Date(this.config.TimeValid[1]);
+        }
+        else {
+            return true; // 格式不正確，視為有效
+        }
+
+        // 檢查日期是否有效
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.warn('TimeValid 日期格式無效:', this.config.TimeValid);
+            return true; // 日期無效，視為有效
+        }
+
+        const now = new Date();
+        return now >= startDate && now <= endDate;
     }
 
     async fetchMarketingData(brand, url) {
@@ -3229,6 +3667,17 @@ class InfMarketingComponentManager {
         this.currentComponent.setAttribute('button-text-color', this.config.CTA_color || '#FFFFFFFF');
         this.currentComponent.setAttribute('today-display-mode', this.config.TodayDisplayMode !== false ? 'true' : 'false');
         
+        // 設置時間有效性驗證
+        if (this.config.TimeValid) {
+            if (typeof this.config.TimeValid === 'string') {
+                // 如果是字串格式，直接設置
+                this.currentComponent.setAttribute('time-valid', this.config.TimeValid);
+            } else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+                // 如果是陣列格式，轉換為 JSON 字串
+                this.currentComponent.setAttribute('time-valid', JSON.stringify(this.config.TimeValid));
+            }
+        }
+        
         if (this.route) {
             this.currentComponent.setAttribute('iframe-id', this.route.Route);
         }
@@ -3245,6 +3694,17 @@ class InfMarketingComponentManager {
         this.currentComponent.setAttribute('show-arrows', 'false');
         this.currentComponent.setAttribute('autoplay-speed', '3000');
         this.currentComponent.setAttribute('today-display-mode', this.config.TodayDisplayMode === true ? 'true' : 'false');
+        
+        // 設置時間有效性驗證
+        if (this.config.TimeValid) {
+            if (typeof this.config.TimeValid === 'string') {
+                // 如果是字串格式，直接設置
+                this.currentComponent.setAttribute('time-valid', this.config.TimeValid);
+            } else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+                // 如果是陣列格式，轉換為 JSON 字串
+                this.currentComponent.setAttribute('time-valid', JSON.stringify(this.config.TimeValid));
+            }
+        }
         
         if (this.route) {
             this.currentComponent.setAttribute('iframe-id', this.route.Route);
@@ -3279,6 +3739,17 @@ class InfMarketingComponentManager {
 
     configureFloatingButton() {
         this.currentComponent.setAttribute('position', this.config.Location || 'LeftDown');
+        
+        // 設置時間有效性驗證
+        if (this.config.TimeValid) {
+            if (typeof this.config.TimeValid === 'string') {
+                // 如果是字串格式，直接設置
+                this.currentComponent.setAttribute('time-valid', this.config.TimeValid);
+            } else if (Array.isArray(this.config.TimeValid) && this.config.TimeValid.length >= 2) {
+                // 如果是陣列格式，轉換為 JSON 字串
+                this.currentComponent.setAttribute('time-valid', JSON.stringify(this.config.TimeValid));
+            }
+        }
         
         if (this.route) {
             this.currentComponent.setAttribute('iframe-id', this.route.Route);
