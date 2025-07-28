@@ -673,7 +673,9 @@ if (!customElements.get(componentName)) {
 }
 
 // 全域註冊，方便動態創建
-window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketingPopupBannerComponent extends HTMLElement {
+window.InfMarketingModalComponent = InfMarketingModalComponent;
+
+class InfMarketingPopupBannerComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -683,18 +685,38 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
             description: '找到您的個人化專屬商品',
             buttonText: '立即開始',
             buttonColor: '#ddd',
-            buttonTextColor: '#1E1E19'
+            buttonTextColor: '#1E1E19',
+            todayDisplayMode: false // 預設顯示 checkbox
         };
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
     }
 
     connectedCallback() {
+        // 讀取 today-display-mode 屬性
+        const todayDisplayMode = this.getAttribute('today-display-mode');
+        this.config.todayDisplayMode = todayDisplayMode !== 'false';
+        
+        // 檢查用戶是否選擇了「今日不再顯示」
+        if (this.shouldHideToday()) {
+            return; // 如果用戶選擇了今日不再顯示，則不渲染組件
+        }
+        
         this.render();
         this.setupEventListeners();
     }
 
+    shouldHideToday() {
+        const dontShowDate = localStorage.getItem('inf-marketing-popup-dont-show');
+        if (!dontShowDate) {
+            return false;
+        }
+        
+        const today = new Date().toDateString();
+        return dontShowDate === today;
+    }
+
     static get observedAttributes() {
-        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color'];
+        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color', 'today-display-mode'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -717,6 +739,9 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
                     break;
                 case 'button-text-color':
                     this.config.buttonTextColor = newValue;
+                    break;
+                case 'today-display-mode':
+                    this.config.todayDisplayMode = newValue === 'true';
                     break;
             }
             this.render();
@@ -779,6 +804,7 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
                 }
 
                 .popup-container {
+                    position: relative;
                     border-radius: 12px;
                     background: #FCFCF8;
                     box-shadow: 0px 0px 18px 0px rgba(0, 0, 0, 0.15), 0px 0px 2px 0px rgba(0, 0, 0, 0.08), 0px 0px 1px 0px rgba(0, 0, 0, 0.15);
@@ -1009,6 +1035,75 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
                     background-color:rgb(178, 178, 178);
                 }
 
+                .dont-show-today-container {
+                    position: absolute;
+                    top: -20px;
+                    left: 0;
+                    padding: 0 10px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .dont-show-today-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                    user-select: none;
+                }
+
+                .dont-show-today-checkbox {
+                    width: 14px;
+                    height: 14px;
+                    margin: 0;
+                    cursor: pointer;
+                    accent-color: #1e1e19;
+                }
+
+                .dont-show-today-text {
+                    color: #666;
+                    font-family: "Noto Sans TC";
+                    font-size: 11px;
+                    font-weight: 400;
+                    line-height: 14px;
+                    letter-spacing: 0.3px;
+                }
+
+                /* 手機版響應式設計 */
+                @media (max-width: 480px) {
+                    .dont-show-today-container {
+                        padding: 0 8px;
+                    }
+
+                    .dont-show-today-text {
+                        font-size: 10px;
+                        line-height: 12px;
+                    }
+
+                    .dont-show-today-checkbox {
+                        width: 12px;
+                        height: 12px;
+                    }
+                }
+
+                @media (max-width: 360px) {
+                    .dont-show-today-container {
+                        margin-top: 5px;
+                        padding: 0 6px;
+                    }
+
+                    .dont-show-today-text {
+                        font-size: 9px;
+                        line-height: 11px;
+                    }
+
+                    .dont-show-today-checkbox {
+                        width: 11px;
+                        height: 11px;
+                    }
+                }
+
                 /* 添加懸浮動畫效果 */
                 .popup-container::after {
                     content: '';
@@ -1140,6 +1235,14 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
                 }
             </style>
             <div class="popup-container" data-position="${this.config.position}">
+                ${this.config.todayDisplayMode === true ? `
+                <div class="dont-show-today-container">
+                    <label class="dont-show-today-label">
+                        <input type="checkbox" class="dont-show-today-checkbox" id="dont-show-today">
+                        <span class="dont-show-today-text">今日不再顯示</span>
+                    </label>
+                </div>
+                ` : ''}
                 <button class="close-button" title="關閉">
                      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -1194,6 +1297,21 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
             e.preventDefault();
             this.dispatchEvent(new CustomEvent('inf-marketing-popup-banner-close'));
         }, { passive: false });
+
+        // 添加 checkbox 事件監聽器（僅當 checkbox 存在時）
+        const checkbox = this.shadowRoot.querySelector('.dont-show-today-checkbox');
+        if (checkbox) {
+            checkbox.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                // 將用戶選擇儲存到 localStorage
+                if (isChecked) {
+                    const today = new Date().toDateString();
+                    localStorage.setItem('inf-marketing-popup-dont-show', today);
+                } else {
+                    localStorage.removeItem('inf-marketing-popup-dont-show');
+                }
+            });
+        }
     }
 
     // 顯示智慧選物彈窗（與 square card banner 組件完全相同）
@@ -1314,7 +1432,9 @@ window.InfMarketingModalComponent = InfMarketingModalComponent; class InfMarketi
     }
 }
 
-customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerComponent);class InfMarketingSquareCardBannerComponent extends HTMLElement {
+customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerComponent);
+
+class InfMarketingSquareCardBannerComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({
@@ -1326,6 +1446,9 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
         this.isInitialized = false;
         this.autoplayTimer = null;
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
+        this.config = {
+            todayDisplayMode: true // 預設顯示 checkbox
+        };
 
         // 拖拽相關變數
         this.isDragging = false;
@@ -1336,7 +1459,7 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
     }
 
     static get observedAttributes() {
-        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed'];
+        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed', 'today-display-mode'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -1352,15 +1475,37 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
                 if (this.isVisible) {
                     this.startAutoplay();
                 }
+            } else if (name === 'today-display-mode') {
+                this.config.todayDisplayMode = newValue === 'true';
+                this.render();
             }
         }
     }
 
     connectedCallback() {
+        // 讀取 today-display-mode 屬性
+        const todayDisplayMode = this.getAttribute('today-display-mode');
+        this.config.todayDisplayMode = todayDisplayMode !== 'false';
+        
+        // 檢查用戶是否選擇了「今日不再顯示」
+        if (this.shouldHideToday()) {
+            return; // 如果用戶選擇了今日不再顯示，則不渲染組件
+        }
+        
         this.render();
         this.initializeComponent();
         this.adjustModalHeightForMobile(); // 新增：初始化時調整
         window.addEventListener('resize', this.adjustModalHeightForMobile.bind(this));
+    }
+
+    shouldHideToday() {
+        const dontShowDate = localStorage.getItem('inf-marketing-square-card-dont-show');
+        if (!dontShowDate) {
+            return false;
+        }
+        
+        const today = new Date().toDateString();
+        return dontShowDate === today;
     }
 
     disconnectedCallback() {
@@ -1912,6 +2057,21 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
             nextButton.addEventListener('touchend', handleNext, { passive: false });
         }
 
+        // 添加 checkbox 事件監聽器
+        const checkbox = this.shadowRoot.querySelector('.dont-show-today-checkbox');
+        if (checkbox) {
+            checkbox.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                // 將用戶選擇儲存到 localStorage
+                if (isChecked) {
+                    const today = new Date().toDateString();
+                    localStorage.setItem('inf-marketing-square-card-dont-show', today);
+                } else {
+                    localStorage.removeItem('inf-marketing-square-card-dont-show');
+                }
+            });
+        }
+
         // 彈窗相關事件已移至獨立的 inf-marketing-modal 組件中處理
 
         // 鍵盤事件
@@ -2027,7 +2187,7 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
                     width: ${width};
                     height: ${height};
                     border-radius: 8px;
-                    overflow: hidden;
+                    overflow: visible;
                     opacity: 0;
                     transform: ${positionTransform};
                     transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -2157,10 +2317,89 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
                     right: 10px;
                 }
 
+                .dont-show-today-container {
+                    position: absolute;
+                    top: -20px;
+                    left: 4px;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                }
+
+                .dont-show-today-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                    user-select: none;
+                }
+
+                .dont-show-today-checkbox {
+                    width: 14px;
+                    height: 14px;
+                    margin: 0;
+                    cursor: pointer;
+                    accent-color: #1e1e19;
+                }
+
+                .dont-show-today-text {
+                    color: #333;
+                    font-family: "Noto Sans TC";
+                    font-size: 11px;
+                    font-weight: 400;
+                    line-height: 14px;
+                    letter-spacing: 0.3px;
+                    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+                }
+
+                /* 手機版響應式設計 */
+                @media (max-width: 480px) {
+                    .dont-show-today-container {
+                        top: -16px;
+                    }
+
+                    .dont-show-today-text {
+                        font-size: 10px;
+                        line-height: 12px;
+                    }
+
+                    .dont-show-today-checkbox {
+                        width: 12px;
+                        height: 12px;
+                    }
+                }
+
+                @media (max-width: 360px) {
+                    .dont-show-today-container {
+                        margin-top: 5px;
+                        padding: 0 6px;
+                    }
+
+                    .dont-show-today-text {
+                        font-size: 9px;
+                        line-height: 11px;
+                    }
+
+                    .dont-show-today-checkbox {
+                        width: 11px;
+                        height: 11px;
+                    }
+                }
+
                 /* 智慧選物彈窗樣式已移至獨立的 inf-marketing-modal 組件 */
             </style>
             
             <div id="inf-marketing-square-card-banner">
+                ${this.config.todayDisplayMode === true ? `
+                <div class="dont-show-today-container">
+                    <label class="dont-show-today-label">
+                        <input type="checkbox" class="dont-show-today-checkbox" id="dont-show-today">
+                        <span class="dont-show-today-text">今日不再顯示</span>
+                    </label>
+                </div>
+                ` : ''}
                 <div class="image-counter">1/1</div>
                 <button class="close-button" title="關閉">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2210,7 +2449,9 @@ customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerCompo
 }
 
 // 註冊Web Component
-customElements.define('inf-marketing-square-card-banner', InfMarketingSquareCardBannerComponent);// inf-marketing-floating-button-component.js
+customElements.define('inf-marketing-square-card-banner', InfMarketingSquareCardBannerComponent);
+
+// inf-marketing-floating-button-component.js
 // 封裝浮動按鈕，點擊時開啟/關閉 inf-marketing-modal 彈窗
 
 const FLOATING_BTN_STYLE = `
@@ -2414,8 +2655,8 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       } else {
         // 否則恢復到搜尋狀態
         trigger.classList.remove('ai-pd-container__trigger--result');
-      trigger.classList.add('ai-pd-container__trigger--search');
-      trigger.title = '開啟智慧選物';
+        trigger.classList.add('ai-pd-container__trigger--search');
+        trigger.title = '開啟智慧選物';
       }
     }
   }
@@ -2941,6 +3182,15 @@ class InfMarketingComponentManager {
     }
 
     async createAndConfigureComponent(componentTagName) {
+        // 檢查使用者是否選擇了「今日不再顯示」
+        const bannerType = this.getBannerType(componentTagName);
+        const dontShowKey = this.getDontShowKey(bannerType);
+        
+        if (dontShowKey && this.shouldHideToday(dontShowKey)) {
+            console.log(`使用者選擇了今日不再顯示 ${bannerType}，跳過組件創建`);
+            return;
+        }
+
         if (this.currentComponent) {
             this.currentComponent.remove();
         }
@@ -2977,6 +3227,7 @@ class InfMarketingComponentManager {
         this.currentComponent.setAttribute('button-text', this.config.CTA_text || '立即開始');
         this.currentComponent.setAttribute('button-color', this.config.CTA_background || '#000000FF');
         this.currentComponent.setAttribute('button-text-color', this.config.CTA_color || '#FFFFFFFF');
+        this.currentComponent.setAttribute('today-display-mode', this.config.TodayDisplayMode !== false ? 'true' : 'false');
         
         if (this.route) {
             this.currentComponent.setAttribute('iframe-id', this.route.Route);
@@ -2993,6 +3244,7 @@ class InfMarketingComponentManager {
         this.currentComponent.setAttribute('auto-show', 'true');
         this.currentComponent.setAttribute('show-arrows', 'false');
         this.currentComponent.setAttribute('autoplay-speed', '3000');
+        this.currentComponent.setAttribute('today-display-mode', this.config.TodayDisplayMode === true ? 'true' : 'false');
         
         if (this.route) {
             this.currentComponent.setAttribute('iframe-id', this.route.Route);
@@ -3172,15 +3424,123 @@ class InfMarketingComponentManager {
         }
         this.isInitialized = false;
     }
+
+    // 獲取 banner 類型
+    getBannerType(componentTagName) {
+        const typeMap = {
+            'inf-marketing-popup-banner': 'PopupBanner',
+            'inf-marketing-square-card-banner': 'SquareCardBanner',
+            'inf-marketing-floating-button': 'FloatButton'
+        };
+        return typeMap[componentTagName] || null;
+    }
+
+    // 獲取 localStorage key
+    getDontShowKey(bannerType) {
+        const keyMap = {
+            'PopupBanner': 'inf-marketing-popup-dont-show',
+            'SquareCardBanner': 'inf-marketing-square-card-dont-show'
+        };
+        return keyMap[bannerType] || null;
+    }
+
+    // 檢查是否應該隱藏
+    shouldHideToday(dontShowKey) {
+        const dontShowDate = localStorage.getItem(dontShowKey);
+        if (!dontShowDate) {
+            return false;
+        }
+        const today = new Date().toDateString();
+        return dontShowDate === today;
+    }
 }
 
 // 創建全域實例
 window.infMarketingManager = new InfMarketingComponentManager();
 
 // 提供手動初始化方法
-window.initInfMarketing = (brand, url, config) => {
+window.initInfMarketing = (brand, url, config, options) => {
+    options = options || {};
+    
+    // 檢查使用者是否勾選了「今日不再顯示」checkbox
+    var bannerType = (config && config.BannerType) ? config.BannerType : null;
+    var dontShowKey = null;
+    
+    if (bannerType === 'PopupBanner') {
+        dontShowKey = 'inf-marketing-popup-dont-show';
+    } else if (bannerType === 'SquareCardBanner') {
+        dontShowKey = 'inf-marketing-square-card-dont-show';
+    }
+    
+    // 檢查使用者是否選擇了今日不再顯示
+    var userDontShowToday = false;
+    if (dontShowKey) {
+        const dontShowDate = localStorage.getItem(dontShowKey);
+        if (dontShowDate) {
+            const today = new Date().toDateString();
+            userDontShowToday = dontShowDate === today;
+        }
+    }
+    
+    // 如果使用者選擇了今日不再顯示，則不顯示組件
+    if (userDontShowToday) {
+        console.log('使用者選擇了今日不再顯示，跳過組件初始化');
+        return;
+    }
+    
+    var once = !!options.once;
+    var expireSeconds = typeof options.expireSeconds === 'number' ? options.expireSeconds : 0;
+
+    function getLocalStorageWithExpire(key) {
+        var data = localStorage.getItem(key);
+        if (!data) return null;
+        try {
+            var obj = JSON.parse(data);
+            if (obj.expireAt && Date.now() > obj.expireAt) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            return obj.value;
+        } catch (e) {
+            localStorage.removeItem(key);
+            return null;
+        }
+    }
+    function setLocalStorageWithExpire(key, value, expireSeconds) {
+        if(key.includes('FloatButton'))return
+        var expireAt = expireSeconds > 0 ? Date.now() + expireSeconds * 1000 : 0;
+        var data = { value: value, expireAt: expireAt };
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    var bannerType = (config && config.BannerType) ? config.BannerType : null;
+    var key = bannerType ? ('infMarketing_' + brand + '_' + bannerType + '_shown') : null;
+    if (once && key && getLocalStorageWithExpire(key)) {
+        // console.log('已初始化過 ' + brand + '（' + bannerType + '），不重複顯示');
+        return;
+    }
+
     if (window.infMarketingManager) {
         window.infMarketingManager.init(brand, url, config);
+
+        if (once) {
+            var handler = function(e) {
+                var bannerType = (e.detail && e.detail.config && e.detail.config.BannerType) ? e.detail.config.BannerType : 'default';
+                var key = 'infMarketing_' + brand + '_' + bannerType + '_shown';
+                if (getLocalStorageWithExpire(key)) {
+                    // 已顯示過，移除元件
+                    if (window.infMarketingManager && window.infMarketingManager.currentComponent) {
+                        window.infMarketingManager.currentComponent.remove();
+                        window.infMarketingManager.currentComponent = null;
+                    }
+                    // console.log('已初始化過 ' + brand + '（' + bannerType + '），不重複顯示');
+                } else {
+                    setLocalStorageWithExpire(key, '1', expireSeconds > 0 ? expireSeconds : 24 * 60 * 60);
+                }
+                window.removeEventListener('infMarketingConfigReady', handler);
+            };
+            window.addEventListener('infMarketingConfigReady', handler);
+        }
     } else {
         console.error('infMarketingManager 尚未載入');
     }
