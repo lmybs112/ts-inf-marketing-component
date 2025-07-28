@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INF marketing component 測試</title>
+    <title>INF marketing component測試</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
@@ -13,12 +13,12 @@
 <body>
     <div class="container">
         <div class="controls">
-            <h3 class="controls-title">INF marketing component 測試</h3>
+            <h3 class="controls-title">INF marketing component測試</h3>
             
             <div class="brand-buttons">
                 <h4>品牌測試</h4>
                 <div class="config-buttons">
-                    <button onclick="testBrand('OSTAMP', 'https://www.ostamp.com.tw/')" class="brand-btn ostamp">
+                    <button onclick="testBrand('OSTAMP', 'https://www.ostamp.com.tw/')" class="brand-btn jerscy">
                         <span class="brand-name">OSTAMP</span>
                         <span class="brand-desc">測試智慧選物</span>
                     </button>
@@ -28,10 +28,6 @@
                     </button>
                     <button onclick="testBrand('OLIVO', 'https://www.olivo.com.tw/')" class="brand-btn olivo">
                         <span class="brand-name">OLIVO</span>
-                        <span class="brand-desc">測試智慧選物</span>
-                    </button>
-                    <button onclick="testBrand('ODM', 'https://www.odm.com.tw/')" class="brand-btn odm">
-                        <span class="brand-name">ODM</span>
                         <span class="brand-desc">測試智慧選物</span>
                     </button>
                 </div>
@@ -46,6 +42,8 @@
         </div>
     </div>
 
+    <!-- 載入營銷組件 -->
+    <script src="./inf-marketing-component.js"></script>
     <script>
         let currentBrand = null;
         let currentUrl = null;
@@ -61,40 +59,18 @@
         // 取得 brand 參數
         const urlBrand = params.get('brand');
 
-        if(urlBrand){
-            currentBrand = urlBrand;
-            currentUrl = '';
-            testBrand(currentBrand, currentUrl);
-            document.querySelector('.brand-buttons').style.display = 'none';
-        }
+       if(urlBrand){
+         currentBrand = urlBrand
+         currentUrl = ''
+         testBrand(currentBrand, currentUrl);
+         document.querySelector('.brand-buttons').style.display = 'none'
+       }
 
-        function loadInfMarketingComponent(callback) {
-            if (window.infMarketingManager) {
-                callback();
-                return;
-            }
-            const existingScript = document.querySelector('script[src*="inf-marketing-all-in-one-component.js"]');
-            if (existingScript) {
-                if (existingScript.complete) {
-                    callback();
-                } else {
-                    existingScript.onload = callback;
-                }
-                return;
-            }
-            var script = document.createElement('script');
-            script.src = './inf-marketing-all-in-one-component.js';
-            script.async = true;
-            script.onload = callback;
-            script.onerror = function () {
-                console.error('載入 inf-marketing-all-in-one-component.js 失敗');
-            };
-            document.head.appendChild(script);
-        }
 
         function testBrand(brand, url) {
             // 如果正在初始化，阻止重複點擊
             if (isInitializing) {
+                // console.log('正在初始化中，請稍候...');
                 return;
             }
 
@@ -113,6 +89,8 @@
                 currentObserver.disconnect();
                 currentObserver = null;
             }
+
+
 
             // 更新狀態顯示
             const statusDisplay = document.getElementById('statusDisplay');
@@ -143,23 +121,24 @@
             // 清理頁面上可能存在的舊組件
             cleanupExistingComponents();
 
-            // 載入組件並初始化
-            loadInfMarketingComponent(function() {
-                try {
-                    window.initInfMarketing(brand, url);
-                    
-                    // 使用 Promise 監聽初始化完成
-                    monitorInitialization(brand, url, statusDisplay);
-                } catch (error) {
-                    const statusLoading = statusDisplay.querySelector('.status-loading');
-                    if (statusLoading) {
-                        statusLoading.textContent = '初始化失敗';
-                        statusLoading.className = 'status-error';
-                    }
-                    // 初始化失敗時重置狀態
-                    isInitializing = false;
+            // 呼叫 initInfMarketing
+            try {
+                window.initInfMarketing(brand, url);
+                
+                // 使用 Promise 監聽初始化完成
+                monitorInitialization(brand, url, statusDisplay);
+
+                // console.log(`✅ 已初始化品牌: ${brand}, 網址: ${url}`);
+            } catch (error) {
+                // console.error(`❌ 初始化失敗: ${brand}`, error);
+                const statusLoading = statusDisplay.querySelector('.status-loading');
+                if (statusLoading) {
+                    statusLoading.textContent = '初始化失敗';
+                    statusLoading.className = 'status-error';
                 }
-            });
+                // 初始化失敗時重置狀態
+                isInitializing = false;
+            }
         }
 
         function cleanupExistingComponents() {
@@ -197,6 +176,13 @@
                                     statusLoading.textContent = '已初始化';
                                     statusLoading.className = 'status-success';
                                 }
+                                
+                                // 在控制台輸出實際創建的組件信息
+                                // console.log('實際創建的組件:', {
+                                //     tagName: node.tagName,
+                                //     componentType: node.tagName.toLowerCase(),
+                                //     config: window.infMarketingManager?.config
+                                // });
                                 
                                 // 更新配置顯示 - 確保組件已創建後才顯示配置
                                 updateConfigDisplay(statusDisplay);
@@ -352,8 +338,23 @@
                     const configText = formatConfig(config);
                     configDisplay.innerHTML = configText;
                     configDisplay.className = 'config-display config-loaded';
+                    
+                    // 在控制台輸出實際載入的配置，用於調試
+                    // console.log('更新配置顯示:', {
+                    //     brand: currentBrand,
+                    //     bannerType: config.BannerType,
+                    //     config: config,
+                    //     timestamp: new Date().toLocaleTimeString()
+                    // });
                 }
             } else {
+                // 嘗試從控制台日誌中獲取配置（用於調試）
+                console.log('無法獲取配置:', {
+                    brand: currentBrand,
+                    manager: window.infMarketingManager,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
                 // 如果無法獲取配置，顯示錯誤信息
                 const configDisplay = statusDisplay.querySelector('.config-display');
                 if (configDisplay) {
@@ -434,6 +435,15 @@
                 `);
             }
             
+            // if (config.TimeValid && config.TimeValid.length >= 2) {
+            //     configItems.push(`
+            //         <div class="config-item">
+            //             <span class="config-key">有效期間</span>
+            //             <span class="config-value">${config.TimeValid[0]} ~ ${config.TimeValid[1]}</span>
+            //         </div>
+            //     `);
+            // }
+            
             // 如果是 SquareCardBanner，顯示卡片選項
             if (config.BannerType === 'SquareCardBanner' && config.CardOptions) {
                 // 顯示每個卡片的詳細內容
@@ -493,26 +503,66 @@
             return configItems.join('');
         }
 
-        // 初始化函數（保留原有的自動初始化邏輯）
-        function initMarketingComponent() {
-            loadInfMarketingComponent(function () {
-                if (typeof window.initInfMarketing === 'function') {
-                    // 如果有 URL 參數，則自動初始化
-                    if (urlBrand) {
-                        window.initInfMarketing(urlBrand);
+        document.addEventListener('DOMContentLoaded', function () {
+            // 自定義配置（當 API 回傳的 config 為空時使用）
+            const SquareCardBanner = {
+                "CardOptions": [{
+                        "image": "",
+                        "Title": "智慧選物",
+                        "url": ""
+                    },
+                    {
+                        "image": "",
+                        "Title": "官網特惠",
+                        "url": "https://www.google.com"
                     }
-                } else {
-                    console.error('window.initInfMarketing 尚未註冊，請檢查外部腳本內容');
-                }
-            });
-        }
+                ],
+                "BannerType": "SquareCardBanner",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-08-12"
+                ],
+                "Location": "RightDown",
+                "status": true
+            };
 
-        // 頁面載入完成後初始化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initMarketingComponent);
-        } else {
-            initMarketingComponent();
-        }
+            const TinyPopupBanner = {
+                "CTA_color": "#FFFFFFFF",
+                "Description": "找到您的個人化專屬商品",
+                "BannerType": "TinyPopupBanner",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-09-12"
+                ],
+                "CTA_background": "#000000FF",
+                "Title": "精選購物之旅",
+                "CTA_text": "立即開始",
+                "Location": "RightDown",
+                "status": true
+            }
+
+            const FloatButton = {
+                "BannerType": "FloatButton",
+                "Location": "LeftDown",
+                "TimeValid": [
+                    "2025-06-04",
+                    "2025-09-12"
+                ],
+                "status": true
+            }
+
+            //debug
+            // const customConfig = {
+            //     'SquareCardBanner': SquareCardBanner,
+            //     'TinyPopupBanner': TinyPopupBanner,
+            //     'FloatButton': FloatButton
+            // }
+
+            // 初始化營銷組件，傳入自定義配置
+            // window.initInfMarketing('JERSCY', 'https://www.jerscy.com.tw/');
+            // window.initInfMarketing('ALMI', 'https://www.almi.com.tw/');
+            // window.initInfMarketing('OLIVO', 'https://www.olivo.com.tw/');
+        });
     </script>
 
     <style>
@@ -622,7 +672,7 @@
             transform: none;
         }
 
-        .brand-btn.ostamp:hover {
+        .brand-btn.jerscy:hover {
             background-color: #e74c3c;
             border-color: #e74c3c;
         }
@@ -635,11 +685,6 @@
         .brand-btn.olivo:hover {
             background-color: #27ae60;
             border-color: #27ae60;
-        }
-
-        .brand-btn.odm:hover {
-            background-color: #9b59b6;
-            border-color: #9b59b6;
         }
 
         .brand-name {

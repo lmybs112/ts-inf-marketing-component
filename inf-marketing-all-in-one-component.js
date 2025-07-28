@@ -686,7 +686,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             buttonText: '立即開始',
             buttonColor: '#ddd',
             buttonTextColor: '#1E1E19',
-            todayDisplayMode: false, // 預設不顯示 checkbox
+            todayDisplayMode: false, // 預設顯示 checkbox
             TimeValid: null // 時間有效性驗證
         };
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
@@ -2888,7 +2888,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (name === 'position') {
-        this.updatePosition();
+      this.updatePosition();
       } else if (name === 'time-valid') {
         if (newValue) {
           try {
