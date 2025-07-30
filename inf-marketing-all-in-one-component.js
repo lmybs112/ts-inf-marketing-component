@@ -759,8 +759,13 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             return true; // 日期無效，視為有效
         }
 
+        // 只比較日期部分，不考慮時間
         const now = new Date();
-        return now >= startDate && now <= endDate;
+        const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        
+        return nowDate >= startDateOnly && nowDate <= endDateOnly;
     }
 
     shouldHideToday() {
@@ -1673,8 +1678,13 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             return true; // 日期無效，視為有效
         }
 
+        // 只比較日期部分，不考慮時間
         const now = new Date();
-        return now >= startDate && now <= endDate;
+        const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        
+        return nowDate >= startDateOnly && nowDate <= endDateOnly;
     }
 
     // 更新樣式
@@ -2992,8 +3002,13 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       return true; // 日期無效，視為有效
     }
 
+    // 只比較日期部分，不考慮時間
     const now = new Date();
-    return now >= startDate && now <= endDate;
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    
+    return nowDate >= startDateOnly && nowDate <= endDateOnly;
   }
 
   disconnectedCallback() {
@@ -3561,8 +3576,13 @@ class InfMarketingComponentManager {
             return true; // 日期無效，視為有效
         }
 
+        // 只比較日期部分，不考慮時間
         const now = new Date();
-        return now >= startDate && now <= endDate;
+        const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        
+        return nowDate >= startDateOnly && nowDate <= endDateOnly;
     }
 
     async fetchMarketingData(brand, url) {
