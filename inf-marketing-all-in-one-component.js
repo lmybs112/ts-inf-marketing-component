@@ -2756,7 +2756,7 @@ const FLOATING_BTN_STYLE = `
   position: relative;
 }
 .ai-pd-container__trigger {
-  z-index: 2000000000;
+  z-index: 999;
   position: fixed;
   display: flex;
   box-sizing: border-box;
@@ -2771,7 +2771,12 @@ const FLOATING_BTN_STYLE = `
   width: 60px;
   height: 60px;
   border: none;
-  transition: box-shadow 0.3s;
+  transition: box-shadow 0.3s, z-index 0.3s;
+}
+
+/* 當彈窗開啟時，提高 z-index */
+.ai-pd-container__trigger--modal-open {
+  z-index: 2000000000;
 }
 .ai-pd-container__trigger:hover, .ai-pd-container__trigger:active {
   cursor: pointer;
@@ -3024,9 +3029,13 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       trigger.classList.remove('ai-pd-container__trigger--result');
       trigger.classList.add('ai-pd-container__trigger--close');
       trigger.title = '關閉智慧選物';
+      // 添加 modal-open 類別，z-index 設為 2000000000
+      trigger.classList.add('ai-pd-container__trigger--modal-open');
     } else {
       // 彈窗關閉時，檢查是否有結果狀態需要恢復
       trigger.classList.remove('ai-pd-container__trigger--close');
+      // 移除 modal-open 類別，z-index 回到 999
+      trigger.classList.remove('ai-pd-container__trigger--modal-open');
       
       // 如果有結果狀態的記憶，恢復到結果狀態
       if (this._hasResult) {
@@ -3217,8 +3226,14 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   _onButtonClick() {
     if (!this._modal) return;
     
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    
     if (this._modal.visible) {
       this._modal.hide();
+      // 彈窗關閉時，移除 modal-open 類別，z-index 回到 999
+      if (trigger) {
+        trigger.classList.remove('ai-pd-container__trigger--modal-open');
+      }
     } else {
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
       const isTabletOrLarger = window.innerWidth >= 768;
@@ -3243,6 +3258,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
         this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
       }
+      
+      // 彈窗開啟時，添加 modal-open 類別，z-index 設為 2000000000
+      if (trigger) {
+        trigger.classList.add('ai-pd-container__trigger--modal-open');
+      }
+      
       this._modal.show();
     }
   }
