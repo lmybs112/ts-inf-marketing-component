@@ -426,7 +426,7 @@ class InfMarketingModalComponent extends HTMLElement {
         this.isVisible = true;
         
         // 當彈窗開啟時，將 z-index 設為 2000000000
-        this.style.zIndex = '2000000000';
+        this.style.setProperty('z-index', '2000000000', 'important');
         
         // 防止背景滾動
         document.body.style.overflow = 'hidden';
@@ -453,7 +453,7 @@ class InfMarketingModalComponent extends HTMLElement {
         this.style.pointerEvents = 'none';
         
         // 當彈窗關閉時，恢復原來的 z-index
-        this.style.zIndex = '20000';
+        this.style.setProperty('z-index', '20000', 'important');
         
         // 恢復背景滾動
         document.body.style.overflow = '';
@@ -3226,10 +3226,10 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (this._modal.visible) {
       this._modal.hide();
       // 當彈窗關閉時，恢復原來的 z-index
-      this.style.setProperty('--floating-btn-z-index', '99999992');
+      this.style.setProperty('--floating-btn-z-index', '99999992', 'important');
     } else {
       // 當彈窗開啟時，將 z-index 設為 2000000000
-      this.style.setProperty('--floating-btn-z-index', '2000000000');
+      this.style.setProperty('--floating-btn-z-index', '2000000000', 'important');
       
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
       const isTabletOrLarger = window.innerWidth >= 768;
