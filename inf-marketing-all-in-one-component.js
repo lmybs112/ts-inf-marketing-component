@@ -52,7 +52,7 @@ template.innerHTML = /*html*/`
             width: 100vw !important;
             height: 100vh !important;
             pointer-events: none;
-            z-index: 2000000000 !important;
+            z-index: 20000 !important;
         }
 
         .modal-container {
@@ -425,6 +425,9 @@ class InfMarketingModalComponent extends HTMLElement {
         modalContainer.classList.add('show');
         this.isVisible = true;
         
+        // 當彈窗開啟時，將 z-index 設為 2000000000
+        this.style.zIndex = '2000000000';
+        
         // 防止背景滾動
         document.body.style.overflow = 'hidden';
 
@@ -448,6 +451,9 @@ class InfMarketingModalComponent extends HTMLElement {
         
         // 修復定位問題：禁用 :host 的 pointer-events
         this.style.pointerEvents = 'none';
+        
+        // 當彈窗關閉時，恢復原來的 z-index
+        this.style.zIndex = '20000';
         
         // 恢復背景滾動
         document.body.style.overflow = '';
@@ -2756,7 +2762,7 @@ const FLOATING_BTN_STYLE = `
   position: relative;
 }
 .ai-pd-container__trigger {
-  z-index: 2000000000;
+  z-index: var(--floating-btn-z-index, 99999992);
   position: fixed;
   display: flex;
   box-sizing: border-box;
@@ -3219,7 +3225,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     
     if (this._modal.visible) {
       this._modal.hide();
+      // 當彈窗關閉時，恢復原來的 z-index
+      this.style.setProperty('--floating-btn-z-index', '99999992');
     } else {
+      // 當彈窗開啟時，將 z-index 設為 2000000000
+      this.style.setProperty('--floating-btn-z-index', '2000000000');
+      
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
       const isTabletOrLarger = window.innerWidth >= 768;
       
