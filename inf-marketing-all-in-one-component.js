@@ -52,7 +52,7 @@ template.innerHTML = /*html*/`
             width: 100vw !important;
             height: 100vh !important;
             pointer-events: none;
-            z-index: 20000 !important;
+            z-index: 2000000000 !important;
         }
 
         .modal-container {
