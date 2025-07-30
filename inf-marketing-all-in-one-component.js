@@ -2756,7 +2756,7 @@ const FLOATING_BTN_STYLE = `
   position: relative;
 }
 .ai-pd-container__trigger {
-  z-index: 99999992;
+  z-index: 2000000000;
   position: fixed;
   display: flex;
   box-sizing: border-box;
