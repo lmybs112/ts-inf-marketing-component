@@ -74,6 +74,38 @@ template.innerHTML = /*html*/`
             opacity: 1;
             visibility: visible;
         }
+        
+        /* 對話框模式：讓點擊事件穿透到下面的元素 */
+        .modal-container.dialog-mode {
+            pointer-events: none !important;
+        }
+        
+        .modal-container.dialog-mode .modal-wrapper {
+            pointer-events: none !important;
+        }
+        
+        .modal-container.dialog-mode .modal-content {
+            pointer-events: auto !important;
+        }
+        
+        .modal-container.dialog-mode .modal-overlay {
+            pointer-events: none !important;
+        }
+        
+        /* 對話框模式下的 :host 元素 */
+        :host(.dialog-mode) {
+            pointer-events: none !important;
+        }
+        
+        /* 強制對話框模式下的所有元素都不攔截點擊事件，除了 modal-content */
+        .modal-container.dialog-mode * {
+            pointer-events: none !important;
+        }
+        
+        .modal-container.dialog-mode .modal-content,
+        .modal-container.dialog-mode .modal-content * {
+            pointer-events: auto !important;
+        }
 
         .modal-overlay {
             position: absolute;
@@ -444,6 +476,15 @@ class InfMarketingModalComponent extends HTMLElement {
         // 設置對話框模式標記（平板以上且不鎖定背景滾動）
         const isTabletOrLarger = window.innerWidth >= 768;
         this._isDialogMode = isTabletOrLarger && !preventScroll;
+        
+        // 如果是對話框模式，設置 pointer-events
+        if (this._isDialogMode) {
+            const modalContainer = this.$('#modal-container');
+            if (modalContainer) {
+                modalContainer.classList.add('dialog-mode');
+            }
+            this.classList.add('dialog-mode');
+        }
 
         // 派發顯示事件
         this.dispatchEvent(new CustomEvent(`${componentName}:show`, {
@@ -470,6 +511,13 @@ class InfMarketingModalComponent extends HTMLElement {
         if (document.body.style.overflow === 'hidden') {
             document.body.style.overflow = '';
         }
+        
+        // 移除對話框模式類別
+        const modalContainerElement = this.$('#modal-container');
+        if (modalContainerElement) {
+            modalContainerElement.classList.remove('dialog-mode');
+        }
+        this.classList.remove('dialog-mode');
 
         // 只隱藏 iframe 容器，不清空內容（保留以便重複使用）
         const iframeContainer = this.$('#iframe-container');
@@ -3333,6 +3381,15 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (closeBtn) {
       closeBtn.style.setProperty('display', 'none', 'important');
     }
+    
+    // 移除對話框模式類別
+    const modalContainer = this._modal.shadowRoot?.querySelector('#modal-container');
+    if (modalContainer) {
+      modalContainer.classList.remove('dialog-mode');
+    }
+    
+    // 移除 Modal 組件本身的對話框模式類別
+    this._modal.classList.remove('dialog-mode');
   }
 
   // 為 RightDown 位置配置彈窗
@@ -3395,6 +3452,30 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (closeBtn) {
       closeBtn.style.setProperty('display', 'none', 'important');
     }
+    
+    // 設置 modal-container 為 pointer-events: none，讓點擊事件穿透到下面的元素
+    const modalContainer = this._modal.shadowRoot?.querySelector('#modal-container');
+    if (modalContainer) {
+      modalContainer.style.pointerEvents = 'none';
+    }
+    
+    // 但保持 modal-content 可以接收點擊事件
+    if (modalContent) {
+      modalContent.style.pointerEvents = 'auto';
+    }
+  }
+  
+  // 設置對話框模式的 pointer-events
+  _setDialogMode() {
+    if (!this._modal) return;
+    
+    const modalContainer = this._modal.shadowRoot?.querySelector('#modal-container');
+    if (modalContainer) {
+      modalContainer.classList.add('dialog-mode');
+    }
+    
+    // 給 Modal 組件本身添加對話框模式類別
+    this._modal.classList.add('dialog-mode');
   }
 
   // 為 LeftDown 位置配置彈窗
@@ -3456,6 +3537,17 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     }
     if (closeBtn) {
       closeBtn.style.setProperty('display', 'none', 'important');
+    }
+    
+    // 設置 modal-container 為 pointer-events: none，讓點擊事件穿透到下面的元素
+    const modalContainer = this._modal.shadowRoot?.querySelector('#modal-container');
+    if (modalContainer) {
+      modalContainer.style.pointerEvents = 'none';
+    }
+    
+    // 但保持 modal-content 可以接收點擊事件
+    if (modalContent) {
+      modalContent.style.pointerEvents = 'auto';
     }
   }
 }
