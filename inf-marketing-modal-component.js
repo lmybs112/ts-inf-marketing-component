@@ -501,8 +501,9 @@ class InfMarketingModalComponent extends HTMLElement {
         const iframeElement = document.createElement('iframe');
         iframeElement.src = url;
         iframeElement.frameBorder = '0';
-        iframeElement.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframeElement.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; identity-credentials-get';
         iframeElement.allowFullscreen = true;
+        iframeElement.setAttribute('permissionspolicy', 'identity-credentials-get=(self)');
         
         // 添加 onload 事件處理器
         iframeElement.onload = () => {
