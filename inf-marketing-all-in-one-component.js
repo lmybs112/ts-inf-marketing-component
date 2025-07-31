@@ -388,6 +388,15 @@ class InfMarketingModalComponent extends HTMLElement {
 
         if (overlay) {
             const handleOverlayClick = (e) => {
+                // 檢查是否為對話框模式（平板以上且不鎖定背景滾動）
+                const isTabletOrLarger = window.innerWidth >= 768;
+                const isDialogMode = isTabletOrLarger && this._isDialogMode;
+                
+                // 如果是對話框模式，背景點擊不關閉彈窗
+                if (isDialogMode) {
+                    return;
+                }
+                
                 if (e.target === overlay) {
                     this.hide();
                 }
@@ -409,7 +418,7 @@ class InfMarketingModalComponent extends HTMLElement {
      * 顯示彈窗
      * @param {string} iframeUrl - 可選的 iframe URL
      */
-    show(iframeUrl = null) {
+    show(iframeUrl = null, options = {}) {
         const modalContainer = this.$('#modal-container');
         if (!modalContainer) return;
 
@@ -425,14 +434,22 @@ class InfMarketingModalComponent extends HTMLElement {
         modalContainer.classList.add('show');
         this.isVisible = true;
         
-        // 防止背景滾動
-        document.body.style.overflow = 'hidden';
+        // 根據選項決定是否防止背景滾動
+        // 預設為 true（保持向後兼容），但可以通過 options.preventScroll 控制
+        const preventScroll = options.preventScroll !== undefined ? options.preventScroll : true;
+        if (preventScroll) {
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 設置對話框模式標記（平板以上且不鎖定背景滾動）
+        const isTabletOrLarger = window.innerWidth >= 768;
+        this._isDialogMode = isTabletOrLarger && !preventScroll;
 
         // 派發顯示事件
         this.dispatchEvent(new CustomEvent(`${componentName}:show`, {
             bubbles: true,
             composed: true,
-            detail: { iframeUrl: this.currentIframeUrl }
+            detail: { iframeUrl: this.currentIframeUrl, preventScroll }
         }));
     }
 
@@ -449,8 +466,10 @@ class InfMarketingModalComponent extends HTMLElement {
         // 修復定位問題：禁用 :host 的 pointer-events
         this.style.pointerEvents = 'none';
         
-        // 恢復背景滾動
-        document.body.style.overflow = '';
+        // 恢復背景滾動（只有在之前被鎖定的情況下才恢復）
+        if (document.body.style.overflow === 'hidden') {
+            document.body.style.overflow = '';
+        }
 
         // 只隱藏 iframe 容器，不清空內容（保留以便重複使用）
         const iframeContainer = this.$('#iframe-container');
@@ -3279,7 +3298,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         trigger.classList.add('ai-pd-container__trigger--modal-open');
       }
       
-      this._modal.show();
+      // 平板以上不鎖定背景滾動，小螢幕保持原本行為
+      const showOptions = {
+        preventScroll: !isTabletOrLarger
+      };
+      
+      this._modal.show(null, showOptions);
     }
   }
 
