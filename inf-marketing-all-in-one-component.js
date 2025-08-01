@@ -1579,6 +1579,28 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         }
     }
 
+    // 隱藏組件
+    hide() {
+        // 隱藏彈窗橫幅
+        this.style.display = 'none';
+        
+        // 如果智慧選物彈窗開啟，也關閉它
+        this.hideSmartSelectionModal();
+        
+        // 觸發隱藏事件
+        this.dispatchEvent(new CustomEvent('inf-marketing-popup-banner-hide'));
+    }
+
+    // 顯示組件
+    show() {
+        // 檢查時間有效性和用戶選擇
+        if (this.isValidTimeRange() && !this.shouldHideToday()) {
+            this.style.display = 'block';
+            // 觸發顯示事件
+            this.dispatchEvent(new CustomEvent('inf-marketing-popup-banner-show'));
+        }
+    }
+
     // 公開方法來更新配置
     updateConfig(newConfig) {
         this.config = { ...this.config, ...newConfig };
@@ -3188,6 +3210,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
             this.resetToSearchState();
           }
         }
+        if (type === 'run_routeproduct_success') {
+           window.showInfMarketing();
+        }
       }
     } catch (error) {
       console.warn('處理 iframe 消息時發生錯誤:', error);
@@ -3551,6 +3576,30 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       modalContent.style.pointerEvents = 'auto';
     }
   }
+
+  // 隱藏組件
+  hide() {
+    // 隱藏浮動按鈕
+    this.style.display = 'none';
+    
+    // 如果彈窗開啟，也關閉彈窗
+    if (this._modal && this._modal.visible) {
+      this._modal.hide();
+    }
+    
+    // 觸發隱藏事件
+    this.dispatchEvent(new CustomEvent('inf-marketing-float-button-hide'));
+  }
+
+  // 顯示組件
+  show() {
+    // 檢查時間有效性
+    if (this.isValidTimeRange()) {
+      this.style.display = 'block';
+      // 觸發顯示事件
+      this.dispatchEvent(new CustomEvent('inf-marketing-float-button-show'));
+    }
+  }
 }
 
 if (!customElements.get('inf-marketing-floating-button')) {
@@ -3755,7 +3804,7 @@ class InfMarketingComponentManager {
         try {
             await this.waitForCustomElement(componentTagName);
             await this.createAndConfigureComponent(componentTagName);
-
+window.hideInfMarketing()
         } catch (error) {
             console.error('載入組件失敗:', error);
         }
@@ -4039,8 +4088,34 @@ class InfMarketingComponentManager {
     }
 
     hideComponent() {
+        // 檢查 currentComponent 是否存在且有 hide 方法
         if (this.currentComponent && this.currentComponent.hide) {
             this.currentComponent.hide();
+        } else {
+            // 如果 currentComponent 不存在或沒有 hide 方法，嘗試直接隱藏所有相關組件
+            console.log('嘗試直接隱藏所有行銷組件');
+            
+            // 隱藏所有可能的行銷組件
+            const components = document.querySelectorAll([
+                'inf-marketing-popup-banner',
+                'inf-marketing-square-card-banner', 
+                'inf-marketing-floating-button'
+            ].join(','));
+            
+            components.forEach(component => {
+                if (component.hide && typeof component.hide === 'function') {
+                    component.hide();
+                } else {
+                    // 如果沒有 hide 方法，直接設置 display 為 none
+                    component.style.display = 'none';
+                }
+            });
+            
+            // 隱藏智慧選物彈窗
+            const modal = document.querySelector('#inf-smart-selection-modal');
+            if (modal && modal.hide && typeof modal.hide === 'function') {
+                modal.hide();
+            }
         }
     }
 
