@@ -789,6 +789,9 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         
         this.render();
         this.setupEventListeners();
+        
+        // 監聽 iframe 消息
+        this._setupIframeMessageListener();
     }
 
     /**
@@ -1607,6 +1610,81 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         this.render();
         this.setupEventListeners(); // 重新渲染後重新綁定事件監聽器
     }
+
+    // 監聽 iframe 消息
+    _setupIframeMessageListener() {
+        // 綁定 this 上下文
+        this._boundHandleIframeMessage = this._handleIframeMessage.bind(this);
+        
+        // 監聽來自 iframe 的 postMessage
+        window.addEventListener('message', this._boundHandleIframeMessage);
+    }
+
+    // 處理 iframe 消息
+    _handleIframeMessage(event) {
+        try {
+            // 檢查消息格式
+            if (event.data && typeof event.data === 'object') {
+                const { type, value } = event.data;
+                
+                // 監聽 iframe 回傳值 type === 'result'
+                if (type === 'result') {
+                    if (value) {
+                        // 有搜尋結果時，記錄狀態並在彈窗關閉時顯示結果狀態
+                        this._hasResult = true;
+                        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+                        if (trigger && trigger.classList.contains('ai-pd-container__trigger--search')) {
+                            // 只有在搜尋狀態（彈窗關閉）時才切換到結果狀態
+                            this.setResultState();
+                        }
+                    } else {
+                        // 沒有搜尋結果時，清除結果狀態並重置為搜尋狀態
+                        this._hasResult = false;
+                        this.resetToSearchState();
+                    }
+                }
+                if (type === 'run_routeproduct_success') {
+                    console.log('run_routeproduct_success');
+                   window.showInfMarketing();
+                }
+            }
+        } catch (error) {
+            console.warn('處理 iframe 消息時發生錯誤:', error);
+        }
+    }
+
+    // 移除 iframe 消息監聽器
+    _removeIframeMessageListener() {
+        if (this._boundHandleIframeMessage) {
+            window.removeEventListener('message', this._boundHandleIframeMessage);
+        }
+    }
+
+    // 設置結果狀態（當有搜尋結果時調用）
+    setResultState() {
+        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+        if (!trigger) return;
+        
+        trigger.classList.remove('ai-pd-container__trigger--search');
+        trigger.classList.remove('ai-pd-container__trigger--close');
+        trigger.classList.add('ai-pd-container__trigger--result');
+        trigger.title = '查看搜尋結果';
+    }
+
+    // 重置為搜尋狀態
+    resetToSearchState() {
+        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+        if (!trigger) return;
+        
+        trigger.classList.remove('ai-pd-container__trigger--result');
+        trigger.classList.remove('ai-pd-container__trigger--close');
+        trigger.classList.add('ai-pd-container__trigger--search');
+        trigger.title = '開啟智慧選物';
+    }
+
+    disconnectedCallback() {
+        this._removeIframeMessageListener();
+    }
 }
 
 customElements.define('inf-marketing-popup-banner', InfMarketingPopupBannerComponent);
@@ -1715,6 +1793,9 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         this.initializeComponent();
         this.adjustModalHeightForMobile(); // 新增：初始化時調整
         window.addEventListener('resize', this.adjustModalHeightForMobile.bind(this));
+        
+        // 監聽 iframe 消息
+        this._setupIframeMessageListener();
     }
 
     shouldHideToday() {
@@ -1730,6 +1811,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
     disconnectedCallback() {
         this.stopAutoplay();
         window.removeEventListener('resize', this.adjustModalHeightForMobile.bind(this)); // 清理事件
+        this._removeIframeMessageListener();
     }
 
     /**
@@ -1882,9 +1964,10 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             this.isVisible = false;
             this.stopAutoplay();
 
-            setTimeout(() => {
-                this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-hide'));
-            }, 600);
+            // 移除觸發會導致組件被移除的事件
+            // setTimeout(() => {
+            //     this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-hide'));
+            // }, 600);
         }
     }
 
@@ -2153,6 +2236,77 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 }
             }, 100);
         }
+    }
+
+    // 監聽 iframe 消息
+    _setupIframeMessageListener() {
+        // 綁定 this 上下文
+        this._boundHandleIframeMessage = this._handleIframeMessage.bind(this);
+        
+        // 監聽來自 iframe 的 postMessage
+        window.addEventListener('message', this._boundHandleIframeMessage);
+    }
+
+    // 處理 iframe 消息
+    _handleIframeMessage(event) {
+        try {
+            // 檢查消息格式
+            if (event.data && typeof event.data === 'object') {
+                const { type, value } = event.data;
+                
+                // 監聽 iframe 回傳值 type === 'result'
+                if (type === 'result') {
+                    if (value) {
+                        // 有搜尋結果時，記錄狀態並在彈窗關閉時顯示結果狀態
+                        this._hasResult = true;
+                        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+                        if (trigger && trigger.classList.contains('ai-pd-container__trigger--search')) {
+                            // 只有在搜尋狀態（彈窗關閉）時才切換到結果狀態
+                            this.setResultState();
+                        }
+                    } else {
+                        // 沒有搜尋結果時，清除結果狀態並重置為搜尋狀態
+                        this._hasResult = false;
+                        this.resetToSearchState();
+                    }
+                }
+                if (type === 'run_routeproduct_success') {
+                    console.log('run_routeproduct_success');
+                   window.showInfMarketing();
+                }
+            }
+        } catch (error) {
+            console.warn('處理 iframe 消息時發生錯誤:', error);
+        }
+    }
+
+    // 移除 iframe 消息監聽器
+    _removeIframeMessageListener() {
+        if (this._boundHandleIframeMessage) {
+            window.removeEventListener('message', this._boundHandleIframeMessage);
+        }
+    }
+
+    // 設置結果狀態（當有搜尋結果時調用）
+    setResultState() {
+        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+        if (!trigger) return;
+        
+        trigger.classList.remove('ai-pd-container__trigger--search');
+        trigger.classList.remove('ai-pd-container__trigger--close');
+        trigger.classList.add('ai-pd-container__trigger--result');
+        trigger.title = '查看搜尋結果';
+    }
+
+    // 重置為搜尋狀態
+    resetToSearchState() {
+        const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+        if (!trigger) return;
+        
+        trigger.classList.remove('ai-pd-container__trigger--result');
+        trigger.classList.remove('ai-pd-container__trigger--close');
+        trigger.classList.add('ai-pd-container__trigger--search');
+        trigger.title = '開啟智慧選物';
     }
 
     // 拖拽開始
@@ -3211,6 +3365,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           }
         }
         if (type === 'run_routeproduct_success') {
+            console.log('run_routeproduct_success');
            window.showInfMarketing();
         }
       }
@@ -3804,7 +3959,7 @@ class InfMarketingComponentManager {
         try {
             await this.waitForCustomElement(componentTagName);
             await this.createAndConfigureComponent(componentTagName);
-window.hideInfMarketing()
+            window.hideInfMarketing()
         } catch (error) {
             console.error('載入組件失敗:', error);
         }
@@ -4062,7 +4217,8 @@ window.hideInfMarketing()
         if (!this.currentComponent) return;
 
         this.currentComponent.addEventListener('inf-marketing-popup-banner-close', this.handleComponentClose);
-        this.currentComponent.addEventListener('inf-marketing-square-card-banner-hide', this.handleComponentClose);
+        // 移除對 inf-marketing-square-card-banner-hide 事件的監聽，避免組件被意外移除
+        // this.currentComponent.addEventListener('inf-marketing-square-card-banner-hide', this.handleComponentClose);
 
         this.currentComponent.addEventListener('inf-marketing-square-card-banner-click', (event) => {
         });
