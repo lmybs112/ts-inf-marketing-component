@@ -1644,7 +1644,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                     }
                 }
                 if (type === 'run_routeproduct_success') {
-                    console.log('run_routeproduct_success');
+                    // console.log('run_routeproduct_success');
                    window.showInfMarketing();
                 }
             }
@@ -2271,7 +2271,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     }
                 }
                 if (type === 'run_routeproduct_success') {
-                    console.log('run_routeproduct_success');
+                    // console.log('run_routeproduct_success');
                    window.showInfMarketing();
                 }
             }
@@ -3365,7 +3365,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           }
         }
         if (type === 'run_routeproduct_success') {
-            console.log('run_routeproduct_success');
+            // console.log('run_routeproduct_success');
            window.showInfMarketing();
         }
       }
@@ -3812,7 +3812,7 @@ class InfMarketingComponentManager {
             this.route = data.route[0];
 
             if (!this.config.status) {
-                console.log('組件狀態為關閉，不顯示', this.config);
+                // console.log('組件狀態為關閉，不顯示', this.config);
                 
                 window.dispatchEvent(new CustomEvent('infMarketingConfigReady', {
                     detail: {
@@ -3987,7 +3987,7 @@ class InfMarketingComponentManager {
         const dontShowKey = this.getDontShowKey(bannerType);
         
         if (dontShowKey && this.shouldHideToday(dontShowKey)) {
-            console.log(`使用者選擇了今日不再顯示 ${bannerType}，跳過組件創建`);
+            // console.log(`使用者選擇了今日不再顯示 ${bannerType}，跳過組件創建`);
             return;
         }
 
@@ -4249,7 +4249,7 @@ class InfMarketingComponentManager {
             this.currentComponent.hide();
         } else {
             // 如果 currentComponent 不存在或沒有 hide 方法，嘗試直接隱藏所有相關組件
-            console.log('嘗試直接隱藏所有行銷組件');
+            // console.log('嘗試直接隱藏所有行銷組件');
             
             // 隱藏所有可能的行銷組件
             const components = document.querySelectorAll([
@@ -4344,7 +4344,7 @@ window.initInfMarketing = (brand, url, config, options) => {
     
     // 如果使用者選擇了今日不再顯示，則不顯示組件
     if (userDontShowToday) {
-        console.log('使用者選擇了今日不再顯示，跳過組件初始化');
+        // console.log('使用者選擇了今日不再顯示，跳過組件初始化');
         return;
     }
     
