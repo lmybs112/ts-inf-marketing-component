@@ -1558,27 +1558,37 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         if (modal && modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
             modal.setIframeUrl(url);
         } else if (modal) {
-            // 如果方法還沒載入，稍後重試
-            setTimeout(() => {
+            // 如果方法還沒載入，使用 requestAnimationFrame 進行輪詢檢查
+            const waitForSetIframeUrl = () => {
                 if (modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
                     modal.setIframeUrl(url);
+                } else {
+                    // 如果方法還沒載入，繼續下一幀檢查
+                    requestAnimationFrame(waitForSetIframeUrl);
                 }
-            }, 100);
+            };
+            
+            requestAnimationFrame(waitForSetIframeUrl);
         }
     }
 
     // 隱藏智慧選物彈窗
     hideSmartSelectionModal() {
-        const modal = document.querySelector('#inf-smart-selection-modal');
+        const modal = document.querySelector('#inf-marketing-modal-component.js');
         if (modal && modal.hide && typeof modal.hide === 'function') {
             modal.hide();
         } else if (modal) {
-            // 如果方法還沒載入，稍後重試
-            setTimeout(() => {
+            // 如果方法還沒載入，使用 requestAnimationFrame 進行輪詢檢查
+            const waitForHide = () => {
                 if (modal.hide && typeof modal.hide === 'function') {
                     modal.hide();
+                } else {
+                    // 如果方法還沒載入，繼續下一幀檢查
+                    requestAnimationFrame(waitForHide);
                 }
-            }, 100);
+            };
+            
+            requestAnimationFrame(waitForHide);
         }
     }
 
@@ -2182,26 +2192,29 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             }
             modal.show();
         } else {
-            // 如果組件還沒完全載入，等待一段時間後重試
-            setTimeout(() => {
-                // 設置 iframe 配置參數（重試時）
-                if (modal.setIframeConfig && typeof modal.setIframeConfig === 'function') {
-            modal.setIframeConfig({
+            // 如果組件還沒完全載入，使用 requestAnimationFrame 進行輪詢檢查
+            const waitForModalMethods = () => {
+                if (modal.setIframeConfig && typeof modal.setIframeConfig === 'function' &&
+                    modal.show && typeof modal.show === 'function') {
+                    
+                    // 設置 iframe 配置參數
+                    modal.setIframeConfig({
                         id: this.getAttribute('iframe-id') || '',
                         brand: this.getAttribute('brand') || '',
-                header: 'from_preview'
-            });
-        }
+                        header: 'from_preview'
+                    });
 
-                if (modal.show && typeof modal.show === 'function') {
                     if (iframeUrl && modal.setIframeUrl && typeof modal.setIframeUrl === 'function') {
                         modal.setIframeUrl(iframeUrl);
                     }
                     modal.show();
                 } else {
-                    console.error('彈窗組件初始化失敗，請檢查 inf-marketing-modal-component.js 是否正確載入');
+                    // 如果方法還沒載入，繼續下一幀檢查
+                    requestAnimationFrame(waitForModalMethods);
                 }
-            }, 100);
+            };
+            
+            requestAnimationFrame(waitForModalMethods);
         }
     }
 
@@ -3532,7 +3545,61 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         preventScroll: !isTabletOrLarger
       };
       
+      // 觸發 FindINF_ProductAI.js 相關功能
+      this._triggerFindINFProductAI();
+      
       this._modal.show(null, showOptions);
+    }
+  }
+
+  // 觸發 FindINF_ProductAI.js 相關功能
+  _triggerFindINFProductAI() {
+    try {
+      // 檢查是否存在 FindINF_proc 函數（FindINF_ProductAI.js 中定義的函數）
+      if (typeof window.FindINF_proc === 'function') {
+        // console.log('找到 FindINF_proc 函數，正在調用...');
+        // 調用 FindINF_proc 函數，傳入品牌和電商數據
+        const brand = this.getAttribute('brand') || 'INF';
+        const ecommerce = {}; // 空的電商數據對象
+        window.FindINF_proc(brand, ecommerce);
+      } else {
+        // 嘗試動態載入 FindINF_ProductAI.js（如果尚未載入）
+        this._loadFindINFProductAIScript();
+      }
+      
+      // 觸發自定義事件，讓其他腳本可以監聽
+      window.dispatchEvent(new CustomEvent('FindINF_ProductAI_triggered', {
+        detail: {
+          source: 'InfMarketingFloatButtonComponent',
+          timestamp: Date.now(),
+          triggerType: 'search_button_click',
+          brand: this.getAttribute('brand') || 'INF'
+        }
+      }));
+      
+    } catch (error) {
+      console.warn('觸發 FindINF_ProductAI 時發生錯誤:', error);
+    }
+  }
+
+  // 動態載入 FindINF_ProductAI.js 腳本
+  _loadFindINFProductAIScript() {
+    // 檢查腳本是否已經載入
+    if (document.querySelector('script[src*="FindINF_ProductAI.js"]')) {
+    //   console.log('FindINF_ProductAI.js 腳本已存在');
+      return;
+    }
+    
+    console.log('FindINF_ProductAI.js 已整合到當前檔案中，直接調用 FindINF_proc 函數...');
+    
+    // 直接調用已整合的 FindINF_proc 函數
+    if (typeof window.FindINF_proc === 'function') {
+      const brand = this.getAttribute('brand') || 'INF';
+      const ecommerce = {}; // 空的電商數據對象
+      window.FindINF_proc(brand, ecommerce);
+      console.log('FindINF_proc 函數調用完成');
+    } else {
+      console.warn('FindINF_proc 函數未找到，請檢查整合是否成功');
     }
   }
 
@@ -4418,3 +4485,240 @@ window.hideInfMarketing = () => {
         window.infMarketingManager.hideComponent();
     }
 };
+
+// ========================================
+// FindINF_ProductAI.js 整合
+// ========================================
+
+// 全局變量
+var FindINF = false;
+var BRAND = '';
+var ecommerce = {};
+
+// FindINF_proc 函數 - 整合自 FindINF_ProductAI.js
+function FindINF_proc(Brand, ecommerce) {
+    // -----------------------------
+    var Brand = Brand;
+    // -----------------------------
+
+    // 生成隨機 ID 的函數
+    var makeid = function (length) {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    };
+
+    // 監聽消息事件
+    window.addEventListener('message', function (event) {
+        if (event.data["MsgHeader"] == "BODYID_MSG") {
+            var bodyid_from_ls = event.data["BODYID"];
+
+            // 獲取訂單相關數據
+            try {
+                var order_id = window.nineyi.ServerData.payProcessData.TradesOrderGroup.TradesOrderList[0].TradesOrder_Code;
+            } catch (e) {
+                var order_id = 'orderid_error';
+            }
+
+            try {
+                var order_id_inner = window.nineyi.ServerData.payProcessData.TradesOrderGroup.TradesOrderList[0].TradesOrder_Code;
+            } catch (e) {
+                var order_id_inner = 'orderid_error';
+            }
+
+            try {
+                var TGCode = ecommerce.actionField.id;
+            } catch (e) {
+                var TGCode = 'TGCode error';
+            }
+
+            try {
+                var TSCode = window.nineyi.ServerData.payProcessData.TradesOrderGroup.TradesOrderList[0].TradesOrderSlaveList.map(product => product.TradesOrderSlave_Code);
+            } catch (e) {
+                var TSCode = 'TSCode error';
+            }
+
+            var data = document.documentElement.innerHTML;
+
+            // 獲取產品相關數據
+            var item_id_list = [];
+            try {
+                item_id_list = ecommerce.products.map(product => product.id);
+            } catch (e) {
+                item_id_list = 'product_id_error';
+            }
+
+            var sku_id_list = [];
+            try {
+                sku_id_list = ecommerce.products.map(product => product.skuId);
+            } catch (e) {
+                sku_id_list = 'sku_id_error';
+            }
+
+            var itemname_id_list = [];
+            try {
+                itemname_id_list = ecommerce.products.map(product => product.name);
+            } catch (e) {
+                itemname_id_list = 'name error';
+            }
+
+            var dvitem_id_list = [];
+            var priceitem_list = [];
+            var count_list = [];
+
+            try {
+                dvitem_id_list = ecommerce.products.map(product => product.skuName);
+            } catch (e) {
+                dvitem_id_list = 'dvitem_id_list error';
+            }
+
+            try {
+                priceitem_list = ecommerce.products.map(product => product.price);
+            } catch (e) {
+                priceitem_list = 'priceitem_list error';
+            }
+
+            try {
+                count_list = ecommerce.products.map(product => product.quantity);
+            } catch (e) {
+                count_list = 'dvitem_id_list error';
+            }
+
+            if (typeof bodyid_from_ls === 'undefined') {
+                bodyid_from_ls = "nobodyid";
+            }
+
+            // AWS 配置
+            if (typeof AWS !== 'undefined') {
+                AWS.config.region = 'ap-northeast-1';
+                AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                    IdentityPoolId: 'ap-northeast-1:ec9d0f5d-ae3e-4ff2-986f-2025ddbedf1a',
+                });
+                AWS.config.credentials.get(function (err) {});
+            }
+
+            // 生成用戶 ID 和會員 ID
+            var member_id = "";
+            var given_id = "";
+            var lgiven_id = "";
+
+            try {
+                var chklog1 = '"currentUser\\"';
+                var chklog2 = ':null';
+                if (!document.documentElement.innerHTML.includes(chklog1 + chklog2)) {
+                    member_id = document.documentElement.innerHTML.split('href="/users/')[1].split('",')[0].split('/edit"')[0];
+                }
+            } catch (e) {
+                member_id = "";
+            }
+
+            // 生成 GVID
+            var gvid_exist = false;
+            try {
+                if (typeof localStorage["GVID"] !== 'undefined') {
+                    gvid_exist = true;
+                } else {
+                    gvid_exist = false;
+                }
+            } catch (e) {
+                gvid_exist = false;
+            }
+            if (gvid_exist) {
+                given_id = localStorage["GVID"];
+            } else {
+                given_id = makeid(20);
+                localStorage.setItem("GVID", given_id);
+            }
+
+            // 生成 LGVID
+            var lgvid_exist = false;
+            try {
+                if (typeof localStorage["LGVID"] !== 'undefined') {
+                    lgvid_exist = true;
+                } else {
+                    lgvid_exist = false;
+                }
+            } catch (e) {
+                lgvid_exist = false;
+            }
+            if (lgvid_exist) {
+                lgiven_id = localStorage["LGVID"];
+            } else {
+                lgiven_id = makeid(20);
+                localStorage.setItem("LGVID", lgiven_id);
+            }
+
+            // 構建查詢數據
+            var product_id_query = item_id_list;
+            var name_query = itemname_id_list;
+            var size_query = dvitem_id_list;
+            var count_query = count_list;
+            var price_query = priceitem_list;
+
+            var Payload_string = '{"PRODUCT_ID": "' + item_id_list.toString() +
+                '","SKU_ID": "' + sku_id_list.toString() +
+                '","NAME": "' + itemname_id_list.toString() +
+                '","TSCode": "' + TSCode.toString() +
+                '","TGCode": "' + TGCode.toString() +
+                '","Size": "' + dvitem_id_list.toString() +
+                '","PRICE": "' + priceitem_list.toString() +
+                '","COUNT": "' + count_query.toString() +
+                '","PRODUCT_ID_QUERY": "' + product_id_query.toString() +
+                '","NAME_QUERY": "' + name_query.toString() +
+                '","Size_QUERY": "' + size_query.toString() +
+                '","PRICE_QUERY": "' + price_query.toString() +
+                '","COUNT_QUERY": "' + count_query.toString() +
+                '","GVID":"' + given_id +
+                '","LGVID":"' + lgiven_id +
+                '","MRID":"' + member_id +
+                '","CLOTHLIST": "' + bodyid_from_ls.toString() +
+                '","Brand": "' + Brand +
+                '","ORDERID_INNER": "' + order_id_inner +
+                '","ORDERID": "' + order_id +
+                '","MKT": "' + true +
+                '"}';
+
+            // 調用 AWS Lambda 函數
+            if (typeof AWS !== 'undefined') {
+                var lambda = new AWS.Lambda({ region: 'ap-northeast-1', apiVersion: '2015-03-31' });
+                var pullParams = {
+                    FunctionName: 'FindINFByID_Brand',
+                    InvocationType: 'RequestResponse',
+                    LogType: 'Tail',
+                    Payload: Payload_string
+                };
+
+                lambda.invoke(pullParams, function (error, data) {
+                    if (error) {
+                        // console.warn('AWS Lambda 調用失敗:', error);
+                    } else {
+                        var pullResults = JSON.parse(data.Payload);
+                        // console.log('AWS Lambda 調用成功');
+                    }
+                    try {
+                        localStorage.removeItem('GVID');
+                    } catch (e) {}
+                });
+            }
+        }
+    }, false);
+
+    // 載入 AWS SDK
+    var awslib = document.createElement("script");
+    awslib.type = "text/javascript";
+    awslib.src = "https://sdk.amazonaws.com/js/aws-sdk-2.243.1.min.js";
+    document.head.appendChild(awslib);
+    awslib.addEventListener('load', function () {
+        var LINK_SRC = "https://inffits.com/";
+        var div = document.createElement('div');
+        div.innerHTML = '<div id="LS_include_div" style="position:absolute; top:0px; text-align:left; display:none; border:none; outline:none; z-index:19; touch-action:none"><iframe id="inffits_LS_window" style="width:100%; height:100%; display:none; position:relative; border:none; outline:none; z-index:19" src="https://inffits.com/webDesign/HTML/DB/LS/LS_include_Size.html"></iframe></div>';
+        document.body.appendChild(div);
+    });
+}
+
+// 將 FindINF_proc 函數暴露到全局作用域
+window.FindINF_proc = FindINF_proc;
