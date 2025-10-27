@@ -12,12 +12,18 @@
  * // 設置 iframe 配置（可選）
  * modal.setIframeConfig({
  *   id: '2025-05-29-18-00-13-2',
- *   brand: 'ALMI'
+ *   brand: 'ALMI',
+ *   MRID: 'mrid-value',
+ *   GVID: 'gvid-value',
+ *   LGVID: 'lgvid-value'
  * });
  * 
  * // 或分別設置
  * modal.setIframeId('custom-id-123');
  * modal.setIframeBrand('MyBrand');
+ * modal.setIframeMRID('mrid-value');
+ * modal.setIframeGVID('gvid-value');
+ * modal.setIframeLGVID('lgvid-value');
  * 
  * // 顯示帶 iframe 的彈窗
  * modal.setIframeUrl('https://example.com');
@@ -350,7 +356,10 @@ class InfMarketingModalComponent extends HTMLElement {
         this.iframeConfig = {
             id: '',
             brand: '',
-            header: 'from_preview'
+            header: 'from_preview',
+            MRID: '',
+            GVID: '',
+            LGVID: ''
         };
 
         // 派發構造完成事件
@@ -627,6 +636,9 @@ class InfMarketingModalComponent extends HTMLElement {
             id: this.iframeConfig.id,
             header: this.iframeConfig.header,
             brand: this.iframeConfig.brand,
+            MRID: this.iframeConfig.MRID,
+            GVID: this.iframeConfig.GVID,
+            LGVID: this.iframeConfig.LGVID
         };
         
         try {
@@ -669,6 +681,9 @@ class InfMarketingModalComponent extends HTMLElement {
      * @param {string} config.id - iframe 訊息 ID
      * @param {string} config.brand - 品牌名稱
      * @param {string} config.header - 訊息標頭（默認為 'from_preview'）
+     * @param {string} config.MRID - MRID 參數（可選）
+     * @param {string} config.GVID - GVID 參數（可選）
+     * @param {string} config.LGVID - LGVID 參數（可選）
      */
     setIframeConfig(config) {
         if (typeof config === 'object' && config !== null) {
@@ -704,6 +719,36 @@ class InfMarketingModalComponent extends HTMLElement {
     setIframeBrand(brand) {
         if (typeof brand === 'string' && brand.trim()) {
             this.iframeConfig.brand = brand.trim();
+        }
+    }
+
+    /**
+     * 設置 MRID 參數
+     * @param {string} mrid - MRID 值
+     */
+    setIframeMRID(mrid) {
+        if (typeof mrid === 'string' && mrid.trim()) {
+            this.iframeConfig.MRID = mrid.trim();
+        }
+    }
+
+    /**
+     * 設置 GVID 參數
+     * @param {string} gvid - GVID 值
+     */
+    setIframeGVID(gvid) {
+        if (typeof gvid === 'string' && gvid.trim()) {
+            this.iframeConfig.GVID = gvid.trim();
+        }
+    }
+
+    /**
+     * 設置 LGVID 參數
+     * @param {string} lgvid - LGVID 值
+     */
+    setIframeLGVID(lgvid) {
+        if (typeof lgvid === 'string' && lgvid.trim()) {
+            this.iframeConfig.LGVID = lgvid.trim();
         }
     }
 
@@ -3842,6 +3887,7 @@ class InfMarketingComponentManager {
         this.modal = null;
         this.isInitialized = false;
         this.brand = null;
+        this.iframeParams = {};
 
         this.init = this.init.bind(this);
         this.fetchMarketingData = this.fetchMarketingData.bind(this);
@@ -3849,7 +3895,14 @@ class InfMarketingComponentManager {
         this.handleComponentClose = this.handleComponentClose.bind(this);
     }
 
-    async init(brand, url, config) {
+    /**
+     * 初始化組件管理器
+     * @param {string} brand - 品牌名稱（必填）
+     * @param {string} [url] - 網址（可選，預設使用當前頁面網址）
+     * @param {Object} [config] - 自定義配置（可選，當 API 回傳的 config 為空時使用）
+     * @param {Object} [iframeParams] - iframe 參數（可選）
+     */
+    async init(brand, url, config, iframeParams) {
         if (this.isInitialized) {
             return;
         }
@@ -3859,8 +3912,11 @@ class InfMarketingComponentManager {
         }
         try {
             this.brand = brand;
+            this.iframeParams = iframeParams || {};
 
-            const data = await this.fetchMarketingData(brand, url);
+            // 如果沒有提供 url，使用當前頁面網址
+            const targetUrl = url || window.location.href;
+            const data = await this.fetchMarketingData(brand, targetUrl);
 
             if (!data || !data.route || data.route.length === 0) {
                 console.warn('未取得有效的營銷資料');
@@ -4214,7 +4270,10 @@ class InfMarketingComponentManager {
             modal.setIframeConfig({
                 id: this.route.Route,
                 brand: this.brand,
-                header: 'from_preview'
+                header: 'from_preview',
+                MRID: this.iframeParams?.MRID || '',
+                GVID: this.iframeParams?.GVID || '',
+                LGVID: this.iframeParams?.LGVID || ''
             });
         }
 
@@ -4385,9 +4444,31 @@ class InfMarketingComponentManager {
 // 創建全域實例
 window.infMarketingManager = new InfMarketingComponentManager();
 
-// 提供手動初始化方法
-window.initInfMarketing = (brand, url, config, options) => {
-    options = options || {};
+/**
+ * 手動初始化營銷組件
+ * @param {string} brand - 品牌名稱（必填）
+ * @param {Object} [options] - 選項（可選）
+ * @param {string} [options.url] - 網址（可選，預設使用當前頁面網址）
+ * @param {Object} [options.config] - 自定義配置（可選，當 API 回傳的 config 為空時使用）
+ * @param {boolean} [options.once] - 是否只顯示一次
+ * @param {number} [options.expireSeconds] - 過期時間（秒）
+ * @param {string} [options.MRID] - MRID 參數
+ * @param {string} [options.GVID] - GVID 參數
+ * @param {string} [options.LGVID] - LGVID 參數
+ */
+window.initInfMarketing = (brand, options) => {
+    // 處理參數
+    if (typeof options === 'undefined') {
+        options = {};
+    }
+    
+    const url = options.url;
+    const config = options.config;
+    const iframeParams = {
+        MRID: options.MRID || '',
+        GVID: options.GVID || '',
+        LGVID: options.LGVID || ''
+    };
     
     // 檢查使用者是否勾選了「今日不再顯示」checkbox
     var bannerType = (config && config.BannerType) ? config.BannerType : null;
@@ -4448,7 +4529,33 @@ window.initInfMarketing = (brand, url, config, options) => {
     }
 
     if (window.infMarketingManager) {
-        window.infMarketingManager.init(brand, url, config);
+        // 傳遞可選參數到 init 方法
+        window.infMarketingManager.init(brand, url, config, iframeParams);
+
+        // 設置 iframe 參數（如果有提供）
+        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID) {
+            // 等待組件載入完成後設置參數
+            const setupIframeParams = () => {
+                const modal = document.querySelector('inf-marketing-modal');
+                if (modal) {
+                    if (iframeParams.MRID) modal.setIframeMRID(iframeParams.MRID);
+                    if (iframeParams.GVID) modal.setIframeGVID(iframeParams.GVID);
+                    if (iframeParams.LGVID) modal.setIframeLGVID(iframeParams.LGVID);
+                    
+                    // 立即發送訊息到 iframe（如果 iframe 已載入）
+                    const iframe = modal.shadowRoot?.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        modal.sendIframeMessage(iframe);
+                    }
+                }
+            };
+            
+            // 立即嘗試設置，如果組件還沒載入則等待
+            setupIframeParams();
+            setTimeout(setupIframeParams, 100);
+            setTimeout(setupIframeParams, 500);
+            setTimeout(setupIframeParams, 1000);
+        }
 
         if (once) {
             var handler = function(e) {
