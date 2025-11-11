@@ -576,6 +576,7 @@ class InfMarketingModalComponent extends HTMLElement {
         
         const iframeElement = document.createElement('iframe');
         iframeElement.src = url;
+        iframeElement.id = 'iframe-container-content';
         iframeElement.frameBorder = '0';
         iframeElement.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; identity-credentials-get';
         iframeElement.allowFullscreen = true;
@@ -1479,14 +1480,14 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         const button = this.shadowRoot.querySelector('.inf-marketing-popup-banner');
         button.addEventListener('click', () => {
             // 使用預設的智慧選物 URL
-            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            const defaultUrl = '/no-media/iframe_container_module.html';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         });
 
         // 支援移動設備觸摸事件
         button.addEventListener('touchend', (e) => {
             e.preventDefault();
-            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            const defaultUrl = '/no-media/iframe_container_module.html';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         }, { passive: false });
 
@@ -2064,7 +2065,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 // 根據當前顯示圖片的 Title 判斷是否為智慧選物
                 if (currentItem.Title === '智慧選物') {
                     // 使用預設的智慧選物 URL 或現有的 iframe URL
-                    const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+                    const defaultUrl = '/no-media/iframe_container_module.html';
                     this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
                     this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-click', {
                         detail: {
@@ -3577,7 +3578,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         this._modal.setIframeUrl(this.modalIframeUrl);
       } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
         // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
-        this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+        this._modal.setIframeUrl('/no-media/iframe_container_module.html');
       }
       
       // 彈窗開啟時，添加 modal-open 類別，z-index 設為 2000000000
@@ -4248,8 +4249,8 @@ class InfMarketingComponentManager {
         if (!this.route) return;
 
         const iframeUrl = this.route.RouteDisplayMode === 'media' ?
-            'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
-            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            '/ts-iframe-v2/iframe_container_module.html':
+            '/no-media/iframe_container_module.html';
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
