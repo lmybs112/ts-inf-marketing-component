@@ -3578,7 +3578,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         this._modal.setIframeUrl(this.modalIframeUrl);
       } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
         // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
-        this._modal.setIframeUrl('/no-media/iframe_container_module.html');
+        this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
       }
       
       // 彈窗開啟時，添加 modal-open 類別，z-index 設為 2000000000
@@ -4249,8 +4249,8 @@ class InfMarketingComponentManager {
         if (!this.route) return;
 
         const iframeUrl = this.route.RouteDisplayMode === 'media' ?
-            '/ts-iframe-v2/iframe_container_module.html':
-            '/no-media/iframe_container_module.html';
+            'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
+            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
