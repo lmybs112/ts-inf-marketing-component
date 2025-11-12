@@ -1480,14 +1480,14 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         const button = this.shadowRoot.querySelector('.inf-marketing-popup-banner');
         button.addEventListener('click', () => {
             // 使用預設的智慧選物 URL
-            const defaultUrl = '/no-media/iframe_container_module.html';
+            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         });
 
         // 支援移動設備觸摸事件
         button.addEventListener('touchend', (e) => {
             e.preventDefault();
-            const defaultUrl = '/no-media/iframe_container_module.html';
+            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         }, { passive: false });
 
@@ -2065,7 +2065,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 // 根據當前顯示圖片的 Title 判斷是否為智慧選物
                 if (currentItem.Title === '智慧選物') {
                     // 使用預設的智慧選物 URL 或現有的 iframe URL
-                    const defaultUrl = '/no-media/iframe_container_module.html';
+                    const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
                     this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
                     this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-click', {
                         detail: {
