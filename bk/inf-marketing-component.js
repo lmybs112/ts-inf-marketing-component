@@ -466,6 +466,7 @@ class InfMarketingComponentManager {
         // 確定 iframe URL
         const iframeUrl = this.route.RouteDisplayMode === 'media' ?
             'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
+            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-tagrandom-meis-projects-cf7f7626.vercel.app/iframe_container_module.html':
             'https://ts-iframe-no-media.vercel.app/iframe_container_module.html'
             ;
         

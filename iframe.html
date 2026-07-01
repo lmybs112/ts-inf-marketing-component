@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="iframe-container">
+        <iframe id="iframe-content" frameborder="0" src="http://test-myinffits.s3-website-ap-northeast-1.amazonaws.com/#/marketing?token=eyJraWQiOiJCbEVNb1RhWlRpbll6OW1IZFwvUVZaMnVSdXVaZTNIXC9cL0dsdEdueVVMS0RNPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4YzFmOTk4Ny0zZjY4LTQ0OWUtOTVlMy00ODVmYjU3NDM3YzAiLCJhdWQiOiI2azg3amQ0OTlqYWQzOXI1a3B2MWw1dmhmdiIsImV2ZW50X2lkIjoiZmRhMTdlNjAtYjg5NC00YjBhLWFiMjItZGUyZmMzMjhmYjQ1IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3NjMzNTA0NDQsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC5hcC1ub3J0aGVhc3QtMi5hbWF6b25hd3MuY29tXC9hcC1ub3J0aGVhc3QtMl9Yd0doYzRpSUYiLCJuYW1lIjoiMDAwMDAwMDAiLCJjb2duaXRvOnVzZXJuYW1lIjoiYWxtaV9kZXYiLCJleHAiOjE3NjMzNTQwNDQsImlhdCI6MTc2MzM1MDQ0NCwiZW1haWwiOiJpbmZmaXRzLmNvbmZpZ0BnbWFpbC5jb20ifQ.bNYNmMIVr5UoasGXt0JyY5lNNyTqx_qizwkJU9jyuORlVl_J5A90KVc6PQAOjZT9lmPU8EKAqCgUcU56GNYD-FhfrAXAhyN9IgaPLlbEF72ACSzYvfyEIYKlzFafxs44JXxlRKHJm15i1U5MWtLfMNAQs29qU7-5UuiApfoAhGDYBAxVYdWixf-Thb8O-JODk_-qyD8joJGWzBTw0iPSXVubXV4g0_jnNQdorkhpx0q5VkOuvZ15eLA3MU0jyrFxoObeDOHbz36yxcnA-CtGX6nceNhf2jkYH876X60XO1BL6I99g6S3ABU2l2-hNy_i1e_uYiU_Bt_4MP1bEMWpLw"></iframe>
+    </div>
+    <script>
+        const iframe = document.getElementById('iframe-content');
+        iframe.onload = function() {
+            console.log('iframe loaded');
+        };
+    </script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #iframe-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #iframe-content {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</body>
+</html>
