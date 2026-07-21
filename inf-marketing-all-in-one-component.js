@@ -3879,25 +3879,61 @@ if (!customElements.get('inf-marketing-floating-button')) {
 /**
  * 將 ga 後綴附加到 iframe_container_module.html URL
  * @param {string} url
- * @param {string} ga  - 通常是 '?ga=xxx' 或 '&ga=xxx' 格式
+ * @param {string} ga  - Measurement ID（如 'G-XXXX'）或 '?ga=G-XXXX' / 'ga=G-XXXX'
  * @returns {string}
  */
 function appendIframeGaSuffix(url, ga) {
     if (!url || !ga) return url;
 
-    // 如果 ga 不是以 ? 或 & 開頭，自動加上 ?
-    let suffix = ga.startsWith('?') || ga.startsWith('&') ? ga : '?' + ga;
+    var measurementId = resolveGaMeasurementId(ga);
+    var suffix = measurementId ? ('?ga=' + measurementId) : (ga.startsWith('?') || ga.startsWith('&') ? ga : '?' + ga);
 
-    // 使用正則替換，同時處理原本已有 query string 的情況
     return url.replace(/(iframe_container_module\.html)([?#]|$)/, (match, filename, separator) => {
         if (!separator || separator === '?') {
-            // 原本沒有 query 或緊接 ?，直接接上 suffix
             return filename + suffix;
-        } else {
-            // 原本已有 query string，改用 & 連接
-            return filename + '&' + suffix.replace(/^[?&]/, '');
         }
+        return filename + '&' + suffix.replace(/^[?&]/, '');
     });
+}
+
+/**
+ * 從 options.ga 解析 Measurement ID（支援 'G-XXXX'、'?ga=G-XXXX'、'ga=G-XXXX'）
+ * @param {string} ga
+ * @returns {string}
+ */
+function resolveGaMeasurementId(ga) {
+    if (!ga || typeof ga !== 'string') return '';
+    var trimmed = ga.trim();
+    var queryMatch = trimmed.match(/(?:^|[?&])ga=([^&]*)/i);
+    if (queryMatch) return decodeURIComponent(queryMatch[1]);
+    if (/^G-[A-Z0-9]+$/i.test(trimmed)) return trimmed;
+    return '';
+}
+
+/**
+ * 在外層頁面載入 gtag（有傳 ga 才執行）
+ * @param {string} ga
+ */
+function ensureOuterGtag(ga) {
+    var measurementId = resolveGaMeasurementId(ga);
+    if (!measurementId) return;
+    if (window.__infMarketingGtagId === measurementId) return;
+
+    window.__infMarketingGtagId = measurementId;
+    window.GA_MEASUREMENT_ID = measurementId;
+    window.dataLayer = window.dataLayer || [];
+    if (typeof window.gtag !== 'function') {
+        window.gtag = function () { window.dataLayer.push(arguments); };
+    }
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId);
+
+    if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"][src*="' + measurementId + '"]')) {
+        var gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+        document.head.appendChild(gtagScript);
+    }
 }
 
 /**
@@ -4482,12 +4518,17 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.MRID] - MRID 參數
  * @param {string} [options.GVID] - GVID 參數
  * @param {string} [options.LGVID] - LGVID 參數
- * @param {string} [options.ga] - iframe_container_module.html 後綴（可選）
+ * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
     if (typeof options === 'undefined') {
         options = {};
+    }
+
+    // 有傳 ga：在外層頁注入 gtag，並帶入 iframe
+    if (options.ga) {
+        ensureOuterGtag(options.ga);
     }
     
     const url = options.url;
