@@ -3877,6 +3877,17 @@ if (!customElements.get('inf-marketing-floating-button')) {
 // ==================== 管理器組件 ====================
 
 /**
+ * 將 ga 後綴附加到 iframe_container_module.html URL
+ * @param {string} url
+ * @param {string} ga
+ * @returns {string}
+ */
+function appendIframeGaSuffix(url, ga) {
+    if (!url || !ga) return url;
+    return url.replace('iframe_container_module.html', 'iframe_container_module.html' + ga);
+}
+
+/**
  * INF marketing component管理器
  * 負責整合所有營銷組件的載入和管理功能
  */
@@ -4248,10 +4259,11 @@ class InfMarketingComponentManager {
     async setupModalIframe() {
         if (!this.route) return;
 
-        const iframeUrl = this.route.RouteDisplayMode === 'media' ?
+        const baseIframeUrl = this.route.RouteDisplayMode === 'media' ?
             'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
             this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-tagrandom-meis-projects-cf7f7626.vercel.app/iframe_container_module.html':
             'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+        const iframeUrl = appendIframeGaSuffix(baseIframeUrl, this.iframeParams?.ga || '');
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
@@ -4457,6 +4469,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.MRID] - MRID 參數
  * @param {string} [options.GVID] - GVID 參數
  * @param {string} [options.LGVID] - LGVID 參數
+ * @param {string} [options.ga] - iframe_container_module.html 後綴（可選）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
@@ -4469,7 +4482,8 @@ window.initInfMarketing = (brand, options) => {
     const iframeParams = {
         MRID: options.MRID || '',
         GVID: options.GVID || '',
-        LGVID: options.LGVID || ''
+        LGVID: options.LGVID || '',
+        ga: options.ga || ''
     };
     
     // 檢查使用者是否勾選了「今日不再顯示」checkbox

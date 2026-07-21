@@ -39,7 +39,7 @@
             function initMarketingComponent() {
                 loadInfMarketingComponent(function () {
                     if (typeof window.initInfMarketing === 'function') {
-                        window.initInfMarketing('OB91'); // floating button
+                        window.initInfMarketing('OB91', {ga: 'ga-xxxx'}); // floating button
                     } else {
                         console.error('window.initInfMarketing 尚未註冊，請檢查外部腳本內容');
                     }
