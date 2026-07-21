@@ -3879,12 +3879,25 @@ if (!customElements.get('inf-marketing-floating-button')) {
 /**
  * 將 ga 後綴附加到 iframe_container_module.html URL
  * @param {string} url
- * @param {string} ga
+ * @param {string} ga  - 通常是 '?ga=xxx' 或 '&ga=xxx' 格式
  * @returns {string}
  */
 function appendIframeGaSuffix(url, ga) {
     if (!url || !ga) return url;
-    return url.replace('iframe_container_module.html', 'iframe_container_module.html' + ga);
+
+    // 如果 ga 不是以 ? 或 & 開頭，自動加上 ?
+    let suffix = ga.startsWith('?') || ga.startsWith('&') ? ga : '?' + ga;
+
+    // 使用正則替換，同時處理原本已有 query string 的情況
+    return url.replace(/(iframe_container_module\.html)([?#]|$)/, (match, filename, separator) => {
+        if (!separator || separator === '?') {
+            // 原本沒有 query 或緊接 ?，直接接上 suffix
+            return filename + suffix;
+        } else {
+            // 原本已有 query string，改用 & 連接
+            return filename + '&' + suffix.replace(/^[?&]/, '');
+        }
+    });
 }
 
 /**
