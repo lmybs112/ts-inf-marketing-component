@@ -3937,6 +3937,50 @@ function ensureOuterGtag(ga) {
 }
 
 /**
+ * 監聽 iframe postMessage（header: GA4Event），轉發至父頁 gtag
+ * 契約對齊 no-media-v2 / shirt-component.js
+ */
+function ensureInfMarketingGa4EventListener() {
+    if (window.__infMarketingGa4EventListenerBound) return;
+    window.__infMarketingGa4EventListenerBound = true;
+
+    window.addEventListener('message', function (event) {
+        var data = event.data;
+        if (!data || typeof data !== 'object') return;
+        if (data.header !== 'GA4Event') return;
+        if (!data.event_action) return;
+
+        var gaPayload = {
+            event_category: data.event_category || 'inffits_route',
+            event_label: data.event_label || '',
+            value: typeof data.value === 'number' ? data.value : 1
+        };
+
+        if (data.action != null) gaPayload.action = data.action;
+        if (data.brand != null) gaPayload.brand = data.brand;
+        if (data.route != null) gaPayload.route = data.route;
+        if (data.tag_group != null) gaPayload.tag_group = data.tag_group;
+        if (data.step != null) gaPayload.step = data.step;
+        if (data.from_group != null) gaPayload.from_group = data.from_group;
+        if (data.to_group != null) gaPayload.to_group = data.to_group;
+        if (data.event_value != null) gaPayload.event_value = data.event_value;
+
+        var measurementId = resolveGaMeasurementId(data.measurement_id || window.GA_MEASUREMENT_ID || '');
+        if (measurementId) {
+            gaPayload.send_to = measurementId;
+            ensureOuterGtag(measurementId);
+        }
+
+        if (typeof window.gtag === 'function') {
+            window.gtag('event', data.event_action, gaPayload);
+        }
+    });
+}
+
+// 腳本載入後即掛上 listener（不依賴 initInfMarketing）
+ensureInfMarketingGa4EventListener();
+
+/**
  * INF marketing component管理器
  * 負責整合所有營銷組件的載入和管理功能
  */
@@ -4530,6 +4574,7 @@ window.initInfMarketing = (brand, options) => {
     if (options.ga) {
         ensureOuterGtag(options.ga);
     }
+    ensureInfMarketingGa4EventListener();
     
     const url = options.url;
     const config = options.config;
