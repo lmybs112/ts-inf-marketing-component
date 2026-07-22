@@ -4039,12 +4039,14 @@ class InfMarketingComponentManager {
                 return;
             }
 
-            // 有指定 route_id：直接使用，不依賴 API 回傳的動線；mode 固定 nomedia-v2
+            // 有指定 route_id：打 run_routeproduct，以回傳的 Product 作為動線
             if (routeId) {
-                this.route = {
-                    Route: routeId,
-                    RouteDisplayMode: 'nomedia-v2'
-                };
+                const routeProduct = await this.fetchRouteProduct(brand, routeId);
+                if (!routeProduct?.Product) {
+                    console.warn('未取得有效的 run_routeproduct Product 資料');
+                    return;
+                }
+                this.route = routeProduct.Product;
             } else {
                 this.route = data.route[0];
             }
@@ -4171,6 +4173,39 @@ class InfMarketingComponentManager {
 
         } catch (error) {
             console.error('取得資料失敗:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 依 Brand、Route 取得 run_routeproduct 動線資料
+     * @param {string} brand - 品牌名稱
+     * @param {string} routeId - 動線 ID
+     * @returns {Promise<{RouteConfig?: Array, Product?: Object}|null>}
+     */
+    async fetchRouteProduct(brand, routeId) {
+        try {
+            const params = new URLSearchParams({
+                Brand: brand,
+                Route: routeId
+            });
+            const response = await fetch(
+                `https://xjsoc4o2ci.execute-api.ap-northeast-1.amazonaws.com/v0/extension/run_routeproduct?${params.toString()}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`run_routeproduct 請求失敗: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('取得 run_routeproduct 資料失敗:', error);
             throw error;
         }
     }
