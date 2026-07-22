@@ -40,7 +40,7 @@
                 loadInfMarketingComponent(function () {
                     if (typeof window.initInfMarketing === 'function') {
                         // ga 寫在這裡；initInfMarketing 會在外層載入 gtag，並帶入 iframe
-                        window.initInfMarketing('OB91', { ga: 'G-1234567890' });
+                        window.initInfMarketing('OB91', { ga: 'G-1234567890', route_id: '2026-06-25-05-22-26-2' });
                     } else {
                         console.error('window.initInfMarketing 尚未註冊，請檢查外部腳本內容');
                     }

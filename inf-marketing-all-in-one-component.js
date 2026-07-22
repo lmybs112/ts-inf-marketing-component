@@ -4022,8 +4022,10 @@ class InfMarketingComponentManager {
             // 如果沒有提供 url，使用當前頁面網址
             const targetUrl = url || window.location.href;
             const data = await this.fetchMarketingData(brand, targetUrl);
+            const routeId = (this.iframeParams && this.iframeParams.route_id) ? String(this.iframeParams.route_id).trim() : '';
 
-            if (!data || !data.route || data.route.length === 0) {
+            // 未指定 route_id 時，仍需 API 回傳的動線
+            if (!routeId && (!data || !data.route || data.route.length === 0)) {
                 console.warn('未取得有效的營銷資料');
                 return;
             }
@@ -4037,7 +4039,18 @@ class InfMarketingComponentManager {
                 return;
             }
 
-            this.route = data.route[0];
+            // 有指定 route_id：直接使用，不依賴 API 回傳的動線
+            if (routeId) {
+                const matchedRoute = Array.isArray(data?.route)
+                    ? data.route.find(function (r) { return r && r.Route === routeId; })
+                    : null;
+                const fallbackRoute = (data && data.route && data.route[0]) || {};
+                this.route = Object.assign({}, matchedRoute || fallbackRoute, {
+                    Route: routeId
+                });
+            } else {
+                this.route = data.route[0];
+            }
 
             if (!this.config.status) {
                 // console.log('組件狀態為關閉，不顯示', this.config);
@@ -4563,6 +4576,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.GVID] - GVID 參數
  * @param {string} [options.LGVID] - LGVID 參數
  * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
+ * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用，不依賴 API 回傳的動線）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
@@ -4582,7 +4596,8 @@ window.initInfMarketing = (brand, options) => {
         MRID: options.MRID || '',
         GVID: options.GVID || '',
         LGVID: options.LGVID || '',
-        ga: options.ga || ''
+        ga: options.ga || '',
+        route_id: options.route_id || ''
     };
     
     // 檢查使用者是否勾選了「今日不再顯示」checkbox
