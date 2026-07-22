@@ -4039,15 +4039,12 @@ class InfMarketingComponentManager {
                 return;
             }
 
-            // 有指定 route_id：直接使用，不依賴 API 回傳的動線
+            // 有指定 route_id：直接使用，不依賴 API 回傳的動線；mode 固定 nomedia-v2
             if (routeId) {
-                const matchedRoute = Array.isArray(data?.route)
-                    ? data.route.find(function (r) { return r && r.Route === routeId; })
-                    : null;
-                const fallbackRoute = (data && data.route && data.route[0]) || {};
-                this.route = Object.assign({}, matchedRoute || fallbackRoute, {
-                    Route: routeId
-                });
+                this.route = {
+                    Route: routeId,
+                    RouteDisplayMode: 'nomedia-v2'
+                };
             } else {
                 this.route = data.route[0];
             }
@@ -4576,7 +4573,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.GVID] - GVID 參數
  * @param {string} [options.LGVID] - LGVID 參數
  * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
- * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用，不依賴 API 回傳的動線）
+ * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用且 mode 固定 nomedia-v2）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
