@@ -1,7 +1,6 @@
 // inf-marketing-floating-button-component.js
 // 封裝浮動按鈕，點擊時開啟/關閉 inf-marketing-modal 彈窗
 
-const FLOATING_TOOLTIP_SESSION_KEY = 'inf-marketing-float-tooltip-dismissed';
 const FLOATING_TOOLTIP_TEXT = '來試試 infFITS 個人化推薦購物！';
 const FLOATING_TOOLTIP_LOGO_SRC = 'data:image/png;base64,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';
 
@@ -340,7 +339,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    this._tooltipDismissed = sessionStorage.getItem(FLOATING_TOOLTIP_SESSION_KEY) === '1';
+    this._tooltipDismissed = false;
     this.render();
     this.setupEventListeners();
     
@@ -413,14 +412,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._syncTooltipVisibility();
   }
 
-  // 關閉打字機對話框（本次瀏覽期間不再顯示）
+  // 關閉打字機對話框（當前頁面實例不再顯示）
   _dismissTooltip() {
     this._tooltipDismissed = true;
-    try {
-      sessionStorage.setItem(FLOATING_TOOLTIP_SESSION_KEY, '1');
-    } catch (e) {
-      // sessionStorage 不可用時仍以記憶體狀態隱藏
-    }
     this._syncTooltipVisibility();
   }
 
