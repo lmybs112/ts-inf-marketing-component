@@ -4609,6 +4609,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.LGVID] - LGVID 參數
  * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
  * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用且 mode 固定 nomedia-v2）
+ * @param {boolean} [options.show_origin_price=false] - 是否顯示原價（可選，預設 false）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
@@ -4629,7 +4630,8 @@ window.initInfMarketing = (brand, options) => {
         GVID: options.GVID || '',
         LGVID: options.LGVID || '',
         ga: options.ga || '',
-        route_id: options.route_id || ''
+        route_id: options.route_id || '',
+        show_origin_price: options.show_origin_price === true
     };
     
     // 檢查使用者是否勾選了「今日不再顯示」checkbox
