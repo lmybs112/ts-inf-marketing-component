@@ -11,8 +11,8 @@
 
 
     <script>
-
         function Extensions_mkt_adv(brand, options) {
+            // 載入 inf-marketing-all-in-one-component.js 函數
             function loadInfMarketingComponent(callback) {
                 if (window.infMarketingManager) {
                     callback();
@@ -28,7 +28,7 @@
                     return;
                 }
                 var script = document.createElement('script');
-                script.src = 'https://ts-inf-marketing-component.vercel.app/inf-marketing-all-in-one-component.js';
+                script.src = './inf-marketing-all-in-one-component.js';
                 script.async = true;
                 script.onload = callback;
                 script.onerror = function () {
