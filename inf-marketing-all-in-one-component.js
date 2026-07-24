@@ -359,7 +359,8 @@ class InfMarketingModalComponent extends HTMLElement {
             header: 'from_preview',
             MRID: '',
             GVID: '',
-            LGVID: ''
+            LGVID: '',
+            show_origin_price: false
         };
 
         // 派發構造完成事件
@@ -639,7 +640,8 @@ class InfMarketingModalComponent extends HTMLElement {
             brand: this.iframeConfig.brand,
             MRID: this.iframeConfig.MRID,
             GVID: this.iframeConfig.GVID,
-            LGVID: this.iframeConfig.LGVID
+            LGVID: this.iframeConfig.LGVID,
+            show_origin_price: this.iframeConfig.show_origin_price === true
         };
         
         try {
@@ -685,6 +687,7 @@ class InfMarketingModalComponent extends HTMLElement {
      * @param {string} config.MRID - MRID 參數（可選）
      * @param {string} config.GVID - GVID 參數（可選）
      * @param {string} config.LGVID - LGVID 參數（可選）
+     * @param {boolean} [config.show_origin_price=false] - 是否顯示原價（可選，預設 false）
      */
     setIframeConfig(config) {
         if (typeof config === 'object' && config !== null) {
@@ -751,6 +754,14 @@ class InfMarketingModalComponent extends HTMLElement {
         if (typeof lgvid === 'string' && lgvid.trim()) {
             this.iframeConfig.LGVID = lgvid.trim();
         }
+    }
+
+    /**
+     * 設置是否顯示原價
+     * @param {boolean} showOriginPrice - 是否顯示原價
+     */
+    setIframeShowOriginPrice(showOriginPrice) {
+        this.iframeConfig.show_origin_price = showOriginPrice === true;
     }
 
     /**
@@ -4425,7 +4436,8 @@ class InfMarketingComponentManager {
                 header: 'from_preview',
                 MRID: this.iframeParams?.MRID || '',
                 GVID: this.iframeParams?.GVID || '',
-                LGVID: this.iframeParams?.LGVID || ''
+                LGVID: this.iframeParams?.LGVID || '',
+                show_origin_price: this.iframeParams?.show_origin_price === true
             });
         }
 
