@@ -318,7 +318,12 @@ class InfMarketingModalComponent extends HTMLElement {
         this.iframeConfig = {
             id: '',
             brand: '',
-            header: 'from_preview'
+            header: 'from_preview',
+            MRID: '',
+            GVID: '',
+            LGVID: '',
+            show_origin_price: false,
+            use_route_linked_tags: false
         };
 
         // 派發構造完成事件
@@ -560,6 +565,11 @@ class InfMarketingModalComponent extends HTMLElement {
             id: this.iframeConfig.id,
             header: this.iframeConfig.header,
             brand: this.iframeConfig.brand,
+            MRID: this.iframeConfig.MRID,
+            GVID: this.iframeConfig.GVID,
+            LGVID: this.iframeConfig.LGVID,
+            show_origin_price: this.iframeConfig.show_origin_price === true,
+            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true
         };
         
         try {

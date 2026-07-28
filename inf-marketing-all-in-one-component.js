@@ -360,7 +360,8 @@ class InfMarketingModalComponent extends HTMLElement {
             MRID: '',
             GVID: '',
             LGVID: '',
-            show_origin_price: false
+            show_origin_price: false,
+            use_route_linked_tags: false
         };
 
         // 派發構造完成事件
@@ -641,7 +642,8 @@ class InfMarketingModalComponent extends HTMLElement {
             MRID: this.iframeConfig.MRID,
             GVID: this.iframeConfig.GVID,
             LGVID: this.iframeConfig.LGVID,
-            show_origin_price: this.iframeConfig.show_origin_price === true
+            show_origin_price: this.iframeConfig.show_origin_price === true,
+            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true
         };
         
         try {
@@ -688,6 +690,7 @@ class InfMarketingModalComponent extends HTMLElement {
      * @param {string} config.GVID - GVID 參數（可選）
      * @param {string} config.LGVID - LGVID 參數（可選）
      * @param {boolean} [config.show_origin_price=false] - 是否顯示原價（可選，預設 false）
+     * @param {boolean} [config.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false）
      */
     setIframeConfig(config) {
         if (typeof config === 'object' && config !== null) {
@@ -762,6 +765,14 @@ class InfMarketingModalComponent extends HTMLElement {
      */
     setIframeShowOriginPrice(showOriginPrice) {
         this.iframeConfig.show_origin_price = showOriginPrice === true;
+    }
+
+    /**
+     * 設置是否開啟 RouteLinkedTags 過濾
+     * @param {boolean} useRouteLinkedTags - 是否開啟
+     */
+    setIframeUseRouteLinkedTags(useRouteLinkedTags) {
+        this.iframeConfig.use_route_linked_tags = useRouteLinkedTags === true;
     }
 
     /**
@@ -4782,7 +4793,8 @@ class InfMarketingComponentManager {
                 MRID: this.iframeParams?.MRID || '',
                 GVID: this.iframeParams?.GVID || '',
                 LGVID: this.iframeParams?.LGVID || '',
-                show_origin_price: this.iframeParams?.show_origin_price === true
+                show_origin_price: this.iframeParams?.show_origin_price === true,
+                use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true
             });
         }
 
@@ -4967,6 +4979,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
  * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用且 mode 固定 nomedia-v2）
  * @param {boolean} [options.show_origin_price=false] - 是否顯示原價（可選，預設 false）
+ * @param {boolean} [options.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false；省略或 false 則下一題仍顯示全部選項）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
@@ -4988,7 +5001,8 @@ window.initInfMarketing = (brand, options) => {
         LGVID: options.LGVID || '',
         ga: options.ga || '',
         route_id: options.route_id || '',
-        show_origin_price: options.show_origin_price === true
+        show_origin_price: options.show_origin_price === true,
+        use_route_linked_tags: options.use_route_linked_tags === true
     };
     
     // 檢查使用者是否勾選了「今日不再顯示」checkbox
@@ -5054,7 +5068,7 @@ window.initInfMarketing = (brand, options) => {
         window.infMarketingManager.init(brand, url, config, iframeParams);
 
         // 設置 iframe 參數（如果有提供）
-        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID) {
+        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID || iframeParams.show_origin_price || iframeParams.use_route_linked_tags) {
             // 等待組件載入完成後設置參數
             const setupIframeParams = () => {
                 const modal = document.querySelector('inf-marketing-modal');
@@ -5062,6 +5076,12 @@ window.initInfMarketing = (brand, options) => {
                     if (iframeParams.MRID) modal.setIframeMRID(iframeParams.MRID);
                     if (iframeParams.GVID) modal.setIframeGVID(iframeParams.GVID);
                     if (iframeParams.LGVID) modal.setIframeLGVID(iframeParams.LGVID);
+                    if (typeof modal.setIframeShowOriginPrice === 'function') {
+                        modal.setIframeShowOriginPrice(iframeParams.show_origin_price);
+                    }
+                    if (typeof modal.setIframeUseRouteLinkedTags === 'function') {
+                        modal.setIframeUseRouteLinkedTags(iframeParams.use_route_linked_tags);
+                    }
                     
                     // 立即發送訊息到 iframe（如果 iframe 已載入）
                     const iframe = modal.shadowRoot?.querySelector('iframe');
