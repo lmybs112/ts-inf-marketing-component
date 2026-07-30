@@ -73,6 +73,14 @@ const FLOATING_BTN_STYLE = `
     0 12px 28px rgba(0, 0, 0, 0.08);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.ai-pd-container__tooltip:hover {
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 14px 32px rgba(0, 0, 0, 0.1);
 }
 .ai-pd-container__tooltip-badge {
   position: absolute;
@@ -321,6 +329,8 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._modal = null;
     this._onButtonClick = this._onButtonClick.bind(this);
     this._onTooltipCloseClick = this._onTooltipCloseClick.bind(this);
+    this._onTooltipClick = this._onTooltipClick.bind(this);
+    this._onTooltipKeyDown = this._onTooltipKeyDown.bind(this);
     this._isModalOpen = false; // 追蹤彈窗狀態
     this._hasResult = false; // 追蹤是否有搜尋結果
     this._tooltipDismissed = false; // 本次瀏覽是否已關閉打字機對話框
@@ -329,12 +339,34 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['position'];
+    return ['position', 'float-tooltip-text'];
+  }
+
+  // 未設屬性 → 預設文案；空字串 → 不顯示對話框；其餘 → 自訂文案
+  _getTooltipText() {
+    if (!this.hasAttribute('float-tooltip-text')) {
+      return FLOATING_TOOLTIP_TEXT;
+    }
+    return this.getAttribute('float-tooltip-text') || '';
+  }
+
+  _isTooltipDisabledByText() {
+    return this.hasAttribute('float-tooltip-text') && !this.getAttribute('float-tooltip-text');
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue && name === 'position') {
       this.updatePosition();
+    } else if (oldValue !== newValue && name === 'float-tooltip-text') {
+      this._typewriterCompleted = false;
+      if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container__tooltip')) {
+        const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
+        const text = this._getTooltipText();
+        if (tooltip) {
+          tooltip.setAttribute('aria-label', text ? `開啟智慧選物：${text}` : '開啟智慧選物');
+        }
+        this._syncTooltipVisibility();
+      }
     }
   }
 
@@ -424,6 +456,78 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._dismissTooltip();
   }
 
+  // 點擊對話框：送出 GA4 並開啟智慧選物
+  _onTooltipClick(event) {
+    if (event.target.closest('.ai-pd-container__tooltip-close')) {
+      return;
+    }
+    event.preventDefault();
+    this._trackFloatTooltipGa4();
+    this._openSmartSelectionFromTooltip();
+  }
+
+  _onTooltipKeyDown(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.target.closest('.ai-pd-container__tooltip-close')) return;
+    event.preventDefault();
+    this._trackFloatTooltipGa4();
+    this._openSmartSelectionFromTooltip();
+  }
+
+  _trackFloatTooltipGa4() {
+    try {
+      var brand = this.getAttribute('brand') || '';
+      var route = this.getAttribute('iframe-id') || '';
+      var measurementId = window.GA_MEASUREMENT_ID || '';
+
+      if (typeof window.gtag !== 'function') return;
+
+      var gaPayload = {
+        event_category: 'inffits_route',
+        event_label: 'float_tooltip_open',
+        value: 1,
+        action: 'tooltip_open',
+        brand: brand,
+        route: route
+      };
+      if (measurementId) {
+        gaPayload.send_to = measurementId;
+      }
+      window.gtag('event', 'float_tooltip_click', gaPayload);
+    } catch (e) {
+      console.warn('float tooltip GA4 事件發送失敗:', e);
+    }
+  }
+
+  // 由對話框開啟智慧選物（只開不關）
+  _openSmartSelectionFromTooltip() {
+    if (!this._modal) return;
+
+    this._dismissTooltip();
+    if (this._modal.visible) return;
+
+    const isTabletOrLarger = window.innerWidth >= 768;
+
+    if (isTabletOrLarger) {
+      const position = this.getAttribute('position') || 'LeftDown';
+      if (position === 'RightDown') {
+        this._configureModalForRightDown();
+      } else if (position === 'LeftDown') {
+        this._configureModalForLeftDown();
+      }
+    } else {
+      this._resetModalToCenter();
+    }
+
+    if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl(this.modalIframeUrl);
+    } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+    }
+
+    this._modal.show();
+  }
+
   _stopTypewriter() {
     if (this._typewriterTimer) {
       clearTimeout(this._typewriterTimer);
@@ -437,8 +541,11 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     const textEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip-text');
     if (!textEl) return;
 
+    const tooltipText = this._getTooltipText();
+    if (!tooltipText) return;
+
     if (this._typewriterCompleted) {
-      textEl.textContent = FLOATING_TOOLTIP_TEXT;
+      textEl.textContent = tooltipText;
       textEl.classList.add('ai-pd-container__tooltip-text--done');
       return;
     }
@@ -448,7 +555,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     const prefersReducedMotion = window.matchMedia
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
-      textEl.textContent = FLOATING_TOOLTIP_TEXT;
+      textEl.textContent = tooltipText;
       textEl.classList.add('ai-pd-container__tooltip-text--done');
       this._typewriterCompleted = true;
       return;
@@ -459,8 +566,8 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
 
     const typeNext = () => {
       if (this._tooltipDismissed) return;
-      if (index < FLOATING_TOOLTIP_TEXT.length) {
-        textEl.textContent = FLOATING_TOOLTIP_TEXT.slice(0, index + 1);
+      if (index < tooltipText.length) {
+        textEl.textContent = tooltipText.slice(0, index + 1);
         index += 1;
         this._typewriterTimer = setTimeout(typeNext, 90);
         return;
@@ -483,15 +590,16 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       && !trigger.classList.contains('ai-pd-container__trigger--close')
       && !trigger.classList.contains('ai-pd-container__trigger--result');
 
-    if (!this._tooltipDismissed && isSearchState) {
+    if (!this._tooltipDismissed && isSearchState && !this._isTooltipDisabledByText()) {
       const needsStart = tooltip.hidden || (!this._typewriterTimer && !this._typewriterCompleted);
       tooltip.hidden = false;
       if (needsStart) {
         this._startTypewriter();
       } else if (this._typewriterCompleted) {
         const textEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip-text');
-        if (textEl) {
-          textEl.textContent = FLOATING_TOOLTIP_TEXT;
+        const tooltipText = this._getTooltipText();
+        if (textEl && tooltipText) {
+          textEl.textContent = tooltipText;
           textEl.classList.add('ai-pd-container__tooltip-text--done');
         }
       }
@@ -660,6 +768,11 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (tooltipClose) {
       tooltipClose.addEventListener('click', this._onTooltipCloseClick);
     }
+    const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
+    if (tooltip) {
+      tooltip.addEventListener('click', this._onTooltipClick);
+      tooltip.addEventListener('keydown', this._onTooltipKeyDown);
+    }
   }
 
   // 設置彈窗 iframe URL（統一接口）
@@ -682,12 +795,20 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (tooltipClose) {
       tooltipClose.removeEventListener('click', this._onTooltipCloseClick);
     }
+    const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
+    if (tooltip) {
+      tooltip.removeEventListener('click', this._onTooltipClick);
+      tooltip.removeEventListener('keydown', this._onTooltipKeyDown);
+    }
   }
 
   // 渲染組件
   render() {
     const positionStyles = this.getPositionStyles();
     const tooltipAlignClass = this.getTooltipAlignClass();
+    const tooltipText = this._getTooltipText();
+    const tooltipAriaLabel = tooltipText ? `開啟智慧選物：${tooltipText}` : '開啟智慧選物';
+    const hideTooltip = this._tooltipDismissed || this._isTooltipDisabledByText();
     
     this.shadowRoot.innerHTML = `
       <style>${FLOATING_BTN_STYLE}</style>
@@ -699,9 +820,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           top: ${positionStyles.top};
           transform: ${positionStyles.transform};
         ">
-          <div class="ai-pd-container__tooltip-wrap ${tooltipAlignClass}" role="status" aria-live="polite" ${this._tooltipDismissed ? 'hidden' : ''}>
+          <div class="ai-pd-container__tooltip-wrap ${tooltipAlignClass}" ${hideTooltip ? 'hidden' : ''}>
             <span class="ai-pd-container__tooltip-badge" aria-hidden="true"><img class="ai-pd-container__tooltip-badge-img" src="${FLOATING_TOOLTIP_LOGO_SRC}" alt="" /></span>
-            <div class="ai-pd-container__tooltip">
+            <div class="ai-pd-container__tooltip" role="button" tabindex="0">
               <button class="ai-pd-container__tooltip-close" type="button" aria-label="關閉提示">&times;</button>
               <div class="ai-pd-container__tooltip-typewriter">
                 <span class="ai-pd-container__tooltip-text"></span>
@@ -715,6 +836,10 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         </div>
       </div>
     `;
+    const tooltipEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
+    if (tooltipEl) {
+      tooltipEl.setAttribute('aria-label', tooltipAriaLabel);
+    }
   }
 
   _onButtonClick() {
