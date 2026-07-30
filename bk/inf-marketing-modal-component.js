@@ -323,7 +323,8 @@ class InfMarketingModalComponent extends HTMLElement {
             GVID: '',
             LGVID: '',
             show_origin_price: false,
-            use_route_linked_tags: false
+            use_route_linked_tags: false,
+            intro_mode: null
         };
 
         // 派發構造完成事件
@@ -569,7 +570,10 @@ class InfMarketingModalComponent extends HTMLElement {
             GVID: this.iframeConfig.GVID,
             LGVID: this.iframeConfig.LGVID,
             show_origin_price: this.iframeConfig.show_origin_price === true,
-            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true
+            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true,
+            intro_mode: (this.iframeConfig.intro_mode === 'v1' || this.iframeConfig.intro_mode === 'v2')
+                ? this.iframeConfig.intro_mode
+                : null
         };
         
         try {
@@ -619,6 +623,11 @@ class InfMarketingModalComponent extends HTMLElement {
                 ...this.iframeConfig,
                 ...config
             };
+            if (Object.prototype.hasOwnProperty.call(config, 'intro_mode')) {
+                this.iframeConfig.intro_mode = (config.intro_mode === 'v1' || config.intro_mode === 'v2')
+                    ? config.intro_mode
+                    : null;
+            }
         }
     }
 
@@ -648,6 +657,14 @@ class InfMarketingModalComponent extends HTMLElement {
         if (typeof brand === 'string' && brand.trim()) {
             this.iframeConfig.brand = brand.trim();
         }
+    }
+
+    /**
+     * 設置介紹模式
+     * @param {null|'v1'|'v2'} introMode - 介紹模式（僅接受 null / 'v1' / 'v2'）
+     */
+    setIframeIntroMode(introMode) {
+        this.iframeConfig.intro_mode = (introMode === 'v1' || introMode === 'v2') ? introMode : null;
     }
 
     /**

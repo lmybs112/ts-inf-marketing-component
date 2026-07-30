@@ -361,7 +361,8 @@ class InfMarketingModalComponent extends HTMLElement {
             GVID: '',
             LGVID: '',
             show_origin_price: false,
-            use_route_linked_tags: false
+            use_route_linked_tags: false,
+            intro_mode: null
         };
 
         // 派發構造完成事件
@@ -643,7 +644,10 @@ class InfMarketingModalComponent extends HTMLElement {
             GVID: this.iframeConfig.GVID,
             LGVID: this.iframeConfig.LGVID,
             show_origin_price: this.iframeConfig.show_origin_price === true,
-            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true
+            use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true,
+            intro_mode: (this.iframeConfig.intro_mode === 'v1' || this.iframeConfig.intro_mode === 'v2')
+                ? this.iframeConfig.intro_mode
+                : null
         };
         
         try {
@@ -691,6 +695,7 @@ class InfMarketingModalComponent extends HTMLElement {
      * @param {string} config.LGVID - LGVID 參數（可選）
      * @param {boolean} [config.show_origin_price=false] - 是否顯示原價（可選，預設 false）
      * @param {boolean} [config.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false）
+     * @param {null|'v1'|'v2'} [config.intro_mode=null] - 介紹模式（可選，預設 null）
      */
     setIframeConfig(config) {
         if (typeof config === 'object' && config !== null) {
@@ -698,6 +703,11 @@ class InfMarketingModalComponent extends HTMLElement {
                 ...this.iframeConfig,
                 ...config
             };
+            if (Object.prototype.hasOwnProperty.call(config, 'intro_mode')) {
+                this.iframeConfig.intro_mode = (config.intro_mode === 'v1' || config.intro_mode === 'v2')
+                    ? config.intro_mode
+                    : null;
+            }
         }
     }
 
@@ -773,6 +783,14 @@ class InfMarketingModalComponent extends HTMLElement {
      */
     setIframeUseRouteLinkedTags(useRouteLinkedTags) {
         this.iframeConfig.use_route_linked_tags = useRouteLinkedTags === true;
+    }
+
+    /**
+     * 設置介紹模式
+     * @param {null|'v1'|'v2'} introMode - 介紹模式（僅接受 null / 'v1' / 'v2'）
+     */
+    setIframeIntroMode(introMode) {
+        this.iframeConfig.intro_mode = (introMode === 'v1' || introMode === 'v2') ? introMode : null;
     }
 
     /**
@@ -4942,7 +4960,10 @@ class InfMarketingComponentManager {
                 GVID: this.iframeParams?.GVID || '',
                 LGVID: this.iframeParams?.LGVID || '',
                 show_origin_price: this.iframeParams?.show_origin_price === true,
-                use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true
+                use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true,
+                intro_mode: (this.iframeParams?.intro_mode === 'v1' || this.iframeParams?.intro_mode === 'v2')
+                    ? this.iframeParams.intro_mode
+                    : null
             });
         }
 
@@ -5128,6 +5149,7 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用且 mode 固定 nomedia-v2）
  * @param {boolean} [options.show_origin_price=false] - 是否顯示原價（可選，預設 false）
  * @param {boolean} [options.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false；省略或 false 則下一題仍顯示全部選項）
+ * @param {null|'v1'|'v2'} [options.intro_mode=null] - 介紹模式（可選；省略或 null；合法值 'v1' / 'v2'）
  * @param {string} [options.float_tooltip_text] - 浮動鈕上方對話框文案（可選；省略用預設「來試試 infFITS 個人化推薦購物！」；空字串則不顯示對話框）
  */
 window.initInfMarketing = (brand, options) => {
@@ -5151,7 +5173,8 @@ window.initInfMarketing = (brand, options) => {
         ga: options.ga || '',
         route_id: options.route_id || '',
         show_origin_price: options.show_origin_price === true,
-        use_route_linked_tags: options.use_route_linked_tags === true
+        use_route_linked_tags: options.use_route_linked_tags === true,
+        intro_mode: (options.intro_mode === 'v1' || options.intro_mode === 'v2') ? options.intro_mode : null
     };
     if (Object.prototype.hasOwnProperty.call(options, 'float_tooltip_text')) {
         iframeParams.float_tooltip_text = options.float_tooltip_text == null
@@ -5222,7 +5245,7 @@ window.initInfMarketing = (brand, options) => {
         window.infMarketingManager.init(brand, url, config, iframeParams);
 
         // 設置 iframe 參數（如果有提供）
-        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID || iframeParams.show_origin_price || iframeParams.use_route_linked_tags) {
+        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID || iframeParams.show_origin_price || iframeParams.use_route_linked_tags || iframeParams.intro_mode) {
             // 等待組件載入完成後設置參數
             const setupIframeParams = () => {
                 const modal = document.querySelector('inf-marketing-modal');
@@ -5235,6 +5258,9 @@ window.initInfMarketing = (brand, options) => {
                     }
                     if (typeof modal.setIframeUseRouteLinkedTags === 'function') {
                         modal.setIframeUseRouteLinkedTags(iframeParams.use_route_linked_tags);
+                    }
+                    if (typeof modal.setIframeIntroMode === 'function') {
+                        modal.setIframeIntroMode(iframeParams.intro_mode);
                     }
                     
                     // 立即發送訊息到 iframe（如果 iframe 已載入）
