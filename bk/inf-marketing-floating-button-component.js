@@ -522,7 +522,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
       this._modal.setIframeUrl(this.modalIframeUrl);
     } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
-      this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+      this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
     }
 
     this._modal.show();
@@ -872,7 +872,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         this._modal.setIframeUrl(this.modalIframeUrl);
       } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
         // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
-        this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+        this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
       }
       this._modal.show();
     }

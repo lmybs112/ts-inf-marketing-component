@@ -201,7 +201,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 // 根據當前顯示圖片的 Title 判斷是否為智慧選物
                 if (currentItem.Title === '智慧選物') {
                     // 使用預設的智慧選物 URL 或現有的 iframe URL
-                    const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+                    const defaultUrl = 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
                     this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
                     this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-click', {
                         detail: {

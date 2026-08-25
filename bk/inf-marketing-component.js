@@ -51,7 +51,7 @@
 //    brand: 'ALMI'
 //  });
 
-// modal.setIframeUrl(route[0]?.RouteDisplayMode === 'media'? 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html' : 'https://ts-iframe-v2.vercel.app/iframe_container_module.html');
+// modal.setIframeUrl(route[0]?.RouteDisplayMode === 'media'? 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1' : 'https://ts-iframe-v2.vercel.app/iframe_container_module.html');
 // 依照 config BannerType 判斷要載入 inf-marketing-square-card-banner-component.js 還是 inf-marketing-popup-banner-component.js
 // TinyPopupBanner 載入 inf-marketing-popup-banner-component.js
 // SquareCardBanner 載入 inf-marketing-square-card-banner-component.js
@@ -466,8 +466,8 @@ class InfMarketingComponentManager {
         // 確定 iframe URL
         const iframeUrl = this.route.RouteDisplayMode === 'media' ?
             'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
-            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-tagrandom-meis-projects-cf7f7626.vercel.app/iframe_container_module.html':
-            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html'
+            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v2':
+            'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1'
             ;
         
         // 設置組件的 iframe URL

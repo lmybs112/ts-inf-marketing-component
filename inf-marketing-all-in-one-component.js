@@ -1520,14 +1520,14 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         const button = this.shadowRoot.querySelector('.inf-marketing-popup-banner');
         button.addEventListener('click', () => {
             // 使用預設的智慧選物 URL
-            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            const defaultUrl = 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         });
 
         // 支援移動設備觸摸事件
         button.addEventListener('touchend', (e) => {
             e.preventDefault();
-            const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            const defaultUrl = 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
             this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
         }, { passive: false });
 
@@ -2105,7 +2105,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 // 根據當前顯示圖片的 Title 判斷是否為智慧選物
                 if (currentItem.Title === '智慧選物') {
                     // 使用預設的智慧選物 URL 或現有的 iframe URL
-                    const defaultUrl = 'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+                    const defaultUrl = 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
                     this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
                     this.dispatchEvent(new CustomEvent('inf-marketing-square-card-banner-click', {
                         detail: {
@@ -3735,7 +3735,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
       this._modal.setIframeUrl(this.modalIframeUrl);
     } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
-      this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+      this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
     }
 
     if (anchor) {
@@ -4104,7 +4104,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         this._modal.setIframeUrl(this.modalIframeUrl);
       } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
         // 如果沒有設置 modalIframeUrl，使用預設 URL（保持向後兼容）
-        this._modal.setIframeUrl('https://ts-iframe-no-media.vercel.app/iframe_container_module.html');
+        this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
       }
       
       // 彈窗開啟時，添加 modal-open 類別，z-index 設為 2000000000
@@ -4412,13 +4412,23 @@ function appendIframeGaSuffix(url, ga) {
     if (!url || !ga) return url;
 
     var measurementId = resolveGaMeasurementId(ga);
-    var suffix = measurementId ? ('?ga=' + measurementId) : (ga.startsWith('?') || ga.startsWith('&') ? ga : '?' + ga);
+    var gaQuery = measurementId
+        ? ('ga=' + encodeURIComponent(measurementId))
+        : (ga.startsWith('?') || ga.startsWith('&') ? ga.replace(/^[?&]/, '') : ga);
 
-    return url.replace(/(iframe_container_module\.html)([?#]|$)/, (match, filename, separator) => {
-        if (!separator || separator === '?') {
-            return filename + suffix;
+    // 已有 ga 參數則不重複附加
+    if (/[?&]ga=/.test(url)) return url;
+
+    return url.replace(/(iframe_container_module\.html)([?#].*)?$/, function (match, filename, rest) {
+        if (!rest) {
+            return filename + '?' + gaQuery;
         }
-        return filename + '&' + suffix.replace(/^[?&]/, '');
+        if (rest.charAt(0) === '?') {
+            // 保留既有 query（如 ?v=v1），再附加 ga
+            return filename + rest + '&' + gaQuery;
+        }
+        // rest 以 # 開頭：先加 query 再接 hash
+        return filename + '?' + gaQuery + rest;
     });
 }
 
@@ -4932,8 +4942,8 @@ class InfMarketingComponentManager {
 
         const baseIframeUrl = this.route.RouteDisplayMode === 'media' ?
             'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
-            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-tagrandom-meis-projects-cf7f7626.vercel.app/iframe_container_module.html':
-            'https://ts-iframe-no-media.vercel.app/iframe_container_module.html';
+            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v2':
+            'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
         const iframeUrl = appendIframeGaSuffix(baseIframeUrl, this.iframeParams?.ga || '');
         
         if (this.currentComponent.setModalIframeUrl) {
