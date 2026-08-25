@@ -4475,10 +4475,19 @@ function ensureOuterGtag(ga) {
 /**
  * 監聽 iframe postMessage（header: GA4Event），轉發至父頁 gtag
  * 契約對齊 no-media-v2 / shirt-component.js
+ * iframe 不直接呼叫 gtag，只帶 utm_*；父頁需映射為 campaign_* 再送出
  */
 function ensureInfMarketingGa4EventListener() {
     if (window.__infMarketingGa4EventListenerBound) return;
     window.__infMarketingGa4EventListenerBound = true;
+
+    var utmToCampaign = {
+        utm_source: 'campaign_source',
+        utm_medium: 'campaign_medium',
+        utm_campaign: 'campaign_name',
+        utm_term: 'campaign_term',
+        utm_content: 'campaign_content'
+    };
 
     window.addEventListener('message', function (event) {
         var data = event.data;
@@ -4500,6 +4509,13 @@ function ensureInfMarketingGa4EventListener() {
         if (data.from_group != null) gaPayload.from_group = data.from_group;
         if (data.to_group != null) gaPayload.to_group = data.to_group;
         if (data.event_value != null) gaPayload.event_value = data.event_value;
+
+        // utm_* → campaign_*（gtag 不接受直接傳 utm_*）
+        Object.keys(utmToCampaign).forEach(function (utmKey) {
+            if (data[utmKey]) {
+                gaPayload[utmToCampaign[utmKey]] = data[utmKey];
+            }
+        });
 
         var measurementId = resolveGaMeasurementId(data.measurement_id || window.GA_MEASUREMENT_ID || '');
         if (measurementId) {
