@@ -4403,6 +4403,26 @@ if (!customElements.get('inf-marketing-floating-button')) {
 // ==================== 管理器組件 ====================
 
 /**
+ * 從 localStorage 讀取訪客／會員識別（GVID / LGVID / MRID）
+ * @returns {{MRID: string, GVID: string, LGVID: string}}
+ */
+function readVisitorIdsFromLocalStorage() {
+    var result = { MRID: '', GVID: '', LGVID: '' };
+    try {
+        if (typeof localStorage === 'undefined') return result;
+        var mrid = localStorage.getItem('MRID');
+        var gvid = localStorage.getItem('GVID');
+        var lgvid = localStorage.getItem('LGVID');
+        if (mrid) result.MRID = String(mrid);
+        if (gvid) result.GVID = String(gvid);
+        if (lgvid) result.LGVID = String(lgvid);
+    } catch (e) {
+        // localStorage 不可用（隱私模式等）時略過
+    }
+    return result;
+}
+
+/**
  * 將 ga 後綴附加到 iframe_container_module.html URL
  * @param {string} url
  * @param {string} ga  - Measurement ID（如 'G-XXXX'）或 '?ga=G-XXXX' / 'ga=G-XXXX'
@@ -4978,13 +4998,17 @@ class InfMarketingComponentManager {
         }
 
         if (modal.setIframeConfig) {
+            // options 優先；未傳則回退 localStorage 的 GVID / LGVID / MRID
+            var visitorIds = (typeof readVisitorIdsFromLocalStorage === 'function')
+                ? readVisitorIdsFromLocalStorage()
+                : { MRID: '', GVID: '', LGVID: '' };
             modal.setIframeConfig({
                 id: this.route.Route,
                 brand: this.brand,
                 header: 'from_preview',
-                MRID: this.iframeParams?.MRID || '',
-                GVID: this.iframeParams?.GVID || '',
-                LGVID: this.iframeParams?.LGVID || '',
+                MRID: this.iframeParams?.MRID || visitorIds.MRID || '',
+                GVID: this.iframeParams?.GVID || visitorIds.GVID || '',
+                LGVID: this.iframeParams?.LGVID || visitorIds.LGVID || '',
                 show_origin_price: this.iframeParams?.show_origin_price === true,
                 use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true,
                 intro_mode: (this.iframeParams?.intro_mode === 'v1' || this.iframeParams?.intro_mode === 'v2')
@@ -5168,9 +5192,9 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {Object} [options.config] - 自定義配置（可選，當 API 回傳的 config 為空時使用）
  * @param {boolean} [options.once] - 是否只顯示一次
  * @param {number} [options.expireSeconds] - 過期時間（秒）
- * @param {string} [options.MRID] - MRID 參數
- * @param {string} [options.GVID] - GVID 參數
- * @param {string} [options.LGVID] - LGVID 參數
+ * @param {string} [options.MRID] - MRID 參數（可選；省略則讀 localStorage.MRID）
+ * @param {string} [options.GVID] - GVID 參數（可選；省略則讀 localStorage.GVID）
+ * @param {string} [options.LGVID] - LGVID 參數（可選；省略則讀 localStorage.LGVID）
  * @param {string} [options.ga] - GA Measurement ID（可選，有填則外層載入 gtag，並帶入 iframe URL）
  * @param {string} [options.route_id] - 指定動線 ID（可選，有填則直接使用且 mode 固定 nomedia-v2）
  * @param {boolean} [options.show_origin_price=false] - 是否顯示原價（可選，預設 false）
@@ -5192,10 +5216,11 @@ window.initInfMarketing = (brand, options) => {
     
     const url = options.url;
     const config = options.config;
+    const visitorIds = readVisitorIdsFromLocalStorage();
     const iframeParams = {
-        MRID: options.MRID || '',
-        GVID: options.GVID || '',
-        LGVID: options.LGVID || '',
+        MRID: options.MRID || visitorIds.MRID || '',
+        GVID: options.GVID || visitorIds.GVID || '',
+        LGVID: options.LGVID || visitorIds.LGVID || '',
         ga: options.ga || '',
         route_id: options.route_id || '',
         show_origin_price: options.show_origin_price === true,
