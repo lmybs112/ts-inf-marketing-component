@@ -449,6 +449,9 @@ class InfMarketingModalComponent extends HTMLElement {
         const modalContainer = this.$('#modal-container');
         if (!modalContainer) return;
 
+        // 關閉前通知 iframe（讓其清理／重置狀態）
+        this.notifyIframeParentClose();
+
         modalContainer.classList.remove('show');
         this.isVisible = false;
         
@@ -470,6 +473,24 @@ class InfMarketingModalComponent extends HTMLElement {
             composed: true,
             detail: { iframeUrl: this.currentIframeUrl }
         }));
+    }
+
+    /**
+     * 通知 iframe：父頁即將關閉彈窗／遮罩
+     */
+    notifyIframeParentClose() {
+        try {
+            const iframeElement = this.$('#iframe-container iframe')
+                || this.$('#iframe-container-content');
+            if (iframeElement && iframeElement.contentWindow) {
+                iframeElement.contentWindow.postMessage(
+                    { header: 'parent_close_modal' },
+                    '*'
+                );
+            }
+        } catch (error) {
+            console.warn('無法向 iframe 發送 parent_close_modal:', error);
+        }
     }
 
     /**
