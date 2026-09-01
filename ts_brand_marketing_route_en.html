@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <script>
+        function Extensions_mkt_adv(brand, options) {
+            // 載入 inf-marketing-all-in-one-component.js 函數
+            function loadInfMarketingComponent(callback) {
+                if (window.infMarketingManager) {
+                    callback();
+                    return;
+                }
+                const existingScript = document.querySelector('script[src*="inf-marketing-all-in-one-component.js"]');
+                if (existingScript) {
+                    if (existingScript.complete) {
+                        callback();
+                    } else {
+                        existingScript.onload = callback;
+                    }
+                    return;
+                }
+                var script = document.createElement('script');
+                script.src = './inf-marketing-all-in-one-component.js';
+                script.async = true;
+                script.onload = callback;
+                script.onerror = function () {
+                    console.error('載入 inf-marketing-all-in-one-component.js 失敗');
+                };
+                document.head.appendChild(script);
+            }
+            function initMarketingComponent() {
+                loadInfMarketingComponent(function () {
+                    if (typeof window.initInfMarketing === 'function') {
+                        // ga 寫在這裡；initInfMarketing 會在外層載入 gtag，並帶入 iframe
+                        window.initInfMarketing(brand, options);
+                    } else {
+                        console.error('window.initInfMarketing 尚未註冊，請檢查外部腳本內容');
+                    }
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initMarketingComponent);
+            } else {
+                initMarketingComponent();
+            }
+        }
+        Extensions_mkt_adv('OB91', { ga: 'G-1234567890', route_id: '2026-08-13-12-32-45-0', show_origin_price: false, use_route_linked_tags: true, intro_mode: 'v1', lang: 'en' });
+    </script>
+</body>
+
+</html>

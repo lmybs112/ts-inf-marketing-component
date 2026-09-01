@@ -35,6 +35,169 @@
 
 const componentName = 'inf-marketing-modal';
 
+const PARENT_UI_DEFAULT_LANG = 'zh-TW';
+
+const PARENT_UI_MESSAGES = {
+  'zh-TW': {
+    'common.close': '關閉',
+    'common.dontShowToday': '今日不再顯示',
+    'banner.defaultTitle': '精選購物之旅',
+    'banner.defaultDescription': '找到您的個人化專屬商品',
+    'banner.defaultCta': '立即開始',
+    'card.navPrev': '上一張',
+    'card.navNext': '下一張',
+    'card.smartSelection': '智慧選物',
+    'card.officialPromo': '官網特惠',
+    'modal.loadingTitle': '智慧選物',
+    'modal.loadingText': '正在載入智慧選物介面...',
+    'modal.loadingHint': '提示：如果看到此訊息，表示彈窗功能正常，但尚未設置 iframe URL。',
+    'modal.loadingMissingUrl': '請聯繫管理員設置智慧選物頁面 URL',
+    'float.tooltip': '來試試 infFITS 個人化推薦購物！',
+    'float.multiRouteTooltip': '選擇動線，或直接試試 AI 推薦動線',
+    'float.openSmartSelection': '開啟智慧選物',
+    'float.openSmartSelectionWith': '開啟智慧選物：{text}',
+    'float.closeSmartSelection': '關閉智慧選物',
+    'float.viewResults': '查看搜尋結果',
+    'float.closeTooltip': '關閉提示',
+    'float.guideTapHere': '點這裡開啟智慧選物',
+    'float.guideSkip': '略過',
+    'float.guideStart': '開始',
+    'float.guideReplay': '再看一次教學',
+    'float.multiRouteReopen': '重新選擇動線',
+    'float.multiRouteSectionLabel': '選擇動線',
+    'float.multiRouteGuideHint': '點選上方動線開始，或點下方搜尋鈕直接體驗 AI 推薦',
+    'float.multiRouteGuideSkip': '略過教學',
+    'float.aiRouteLabel': 'AI 推薦動線'
+  },
+  en: {
+  'common.close': 'Close',
+
+  'common.dontShowToday': "Don't show again today",
+
+  'banner.defaultTitle': 'Your Curated Shopping Journey',
+
+  'banner.defaultDescription': 'Discover products selected just for you',
+
+  'banner.defaultCta': 'Start Exploring',
+
+  'card.navPrev': 'Previous',
+
+  'card.navNext': 'Next',
+
+  'card.smartSelection': 'Smart Selection',
+
+  'card.officialPromo': 'Official Offers',
+
+  'modal.loadingTitle': 'Smart Selection',
+
+  'modal.loadingText': 'Loading Smart Selection…',
+
+  'modal.loadingHint': 'Tip: The modal is working, but no iframe URL has been configured yet.',
+
+  'modal.loadingMissingUrl': 'Please contact your administrator to configure the Smart Selection page URL',
+
+  'float.tooltip': 'Discover Your Personalized Picks with infFITS',
+
+  'float.multiRouteTooltip': 'Choose a route, or try the AI-recommended route',
+
+  'float.openSmartSelection': 'Open Smart Selection',
+
+  'float.openSmartSelectionWith': 'Open Smart Selection: {text}',
+
+  'float.closeSmartSelection': 'Close Smart Selection',
+
+  'float.viewResults': 'View Results',
+
+  'float.closeTooltip': 'Close Tooltip',
+
+  'float.guideTapHere': 'Tap here to open Smart Selection',
+
+  'float.guideSkip': 'Skip',
+
+  'float.guideStart': 'Get Started',
+
+  'float.guideReplay': 'Replay Tutorial',
+
+  'float.multiRouteReopen': 'Choose a Route Again',
+
+  'float.multiRouteSectionLabel': 'Choose a Route',
+
+  'float.multiRouteGuideHint': 'Choose a route above, or tap the search button below to get AI-powered recommendations',
+
+  'float.multiRouteGuideSkip': 'Skip Tutorial',
+
+  'float.aiRouteLabel': 'AI-Recommended Route'
+
+  }
+};
+
+/** @deprecated 請改用 parentUiT；保留供外部參考 */
+const FLOATING_TOOLTIP_TEXT = PARENT_UI_MESSAGES['zh-TW']['float.tooltip'];
+/** @deprecated 請改用 parentUiT；保留供外部參考 */
+const MULTI_ROUTE_FLOATING_TOOLTIP_TEXT = PARENT_UI_MESSAGES['zh-TW']['float.multiRouteTooltip'];
+
+function getParentUiLang(lang) {
+  if (lang == null || String(lang).trim() === '') return PARENT_UI_DEFAULT_LANG;
+  var s = String(lang).trim().toLowerCase();
+  if (s === 'en' || s.indexOf('en-') === 0) return 'en';
+  if (s === 'zh-tw' || s === 'zh-hant' || s === 'zh' || s.indexOf('zh-') === 0) return 'zh-TW';
+  return PARENT_UI_DEFAULT_LANG;
+}
+
+function parentUiT(lang, key, replacements) {
+  var normalizedLang = getParentUiLang(lang);
+  var table = PARENT_UI_MESSAGES[normalizedLang] || PARENT_UI_MESSAGES[PARENT_UI_DEFAULT_LANG] || {};
+  var fallback = PARENT_UI_MESSAGES[PARENT_UI_DEFAULT_LANG] || {};
+  var msg = Object.prototype.hasOwnProperty.call(table, key) ? table[key]
+    : (Object.prototype.hasOwnProperty.call(fallback, key) ? fallback[key] : key);
+  if (replacements && typeof replacements === 'object') {
+    Object.keys(replacements).forEach(function (placeholder) {
+      msg = msg.split('{' + placeholder + '}').join(String(replacements[placeholder]));
+    });
+  }
+  return msg;
+}
+
+function escapeHtmlForTooltip(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getModalFallbackContentHtml(lang) {
+  var l = getParentUiLang(lang);
+  var title = escapeHtmlForTooltip(parentUiT(l, 'modal.loadingTitle'));
+  var loading = escapeHtmlForTooltip(parentUiT(l, 'modal.loadingText'));
+  var hint = escapeHtmlForTooltip(parentUiT(l, 'modal.loadingHint'));
+  var missingUrl = escapeHtmlForTooltip(parentUiT(l, 'modal.loadingMissingUrl'));
+  return `
+                <div slot="content">
+                    <div style="padding: 40px; text-align: center; color: #333;">
+                        <h2 style="margin: 0 0 20px 0; color: #667eea;">🎯 ${title}</h2>
+                        <p style="margin: 0 0 15px 0; line-height: 1.6;">${loading}</p>
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #6c757d;">
+                                💡 ${hint}
+                            </p>
+                        </div>
+                        <p style="margin: 15px 0 0 0; font-size: 12px; color: #aaa;">
+                            ${missingUrl}
+                        </p>
+                    </div>
+                </div>
+            `;
+}
+
+function isSmartSelectionCardItem(item) {
+  if (!item) return false;
+  if (item.isSmartSelection === true) return true;
+  var zhTitle = parentUiT('zh-TW', 'card.smartSelection');
+  var enTitle = parentUiT('en', 'card.smartSelection');
+  return item.Title === zhTitle || item.Title === enTitle || item.Title === '智慧選物';
+}
+
 // 創建 HTML 模板
 const template = document.createElement('template');
 template.innerHTML = /*html*/`
@@ -362,7 +525,9 @@ class InfMarketingModalComponent extends HTMLElement {
             LGVID: '',
             show_origin_price: false,
             use_route_linked_tags: false,
-            intro_mode: null
+            intro_mode: null,
+            enable_guide: false,
+            lang: null
         };
 
         // 派發構造完成事件
@@ -370,11 +535,29 @@ class InfMarketingModalComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['width', 'height', 'overlay-color', 'border-radius'];
+        return ['width', 'height', 'overlay-color', 'border-radius', 'ui-lang'];
+    }
+
+    _getUiLang() {
+        return getParentUiLang(this.getAttribute('ui-lang'));
+    }
+
+    _t(key, replacements) {
+        return parentUiT(this._getUiLang(), key, replacements);
+    }
+
+    _syncStaticUiStrings() {
+        const closeBtn = this.$('#close-btn');
+        if (closeBtn) closeBtn.title = this._t('common.close');
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue === newValue) return;
+
+        if (name === 'ui-lang') {
+            this._syncStaticUiStrings();
+            return;
+        }
 
         const modalContent = this.$('#modal-content');
         if (!modalContent) return;
@@ -400,6 +583,7 @@ class InfMarketingModalComponent extends HTMLElement {
 
     connectedCallback() {
         this.bindEvents();
+        this._syncStaticUiStrings();
         
         // 派發連接完成事件
         this.dispatchEvent(new Event(`${componentName}:connected`, { bubbles: true, composed: true }));
@@ -668,9 +852,13 @@ class InfMarketingModalComponent extends HTMLElement {
             use_route_linked_tags: this.iframeConfig.use_route_linked_tags === true,
             intro_mode: (this.iframeConfig.intro_mode === 'v1' || this.iframeConfig.intro_mode === 'v2')
                 ? this.iframeConfig.intro_mode
-                : null
+                : null,
+            enable_guide: this.iframeConfig.enable_guide === true
         };
-        
+        if (this.iframeConfig.lang) {
+            iframe_preview_obj.lang = this.iframeConfig.lang;
+        }
+
         try {
             iframe_container.postMessage(iframe_preview_obj, "*");
         } catch (error) {
@@ -717,6 +905,8 @@ class InfMarketingModalComponent extends HTMLElement {
      * @param {boolean} [config.show_origin_price=false] - 是否顯示原價（可選，預設 false）
      * @param {boolean} [config.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false）
      * @param {null|'v1'|'v2'} [config.intro_mode=null] - 介紹模式（可選，預設 null）
+     * @param {boolean} [config.enable_guide=false] - 是否啟用遮罩引導（可選，預設 false）
+     * @param {'zh-TW'|'en'} [config.lang] - iframe UI 語系（可選；省略則 iframe 預設 zh-TW）
      */
     setIframeConfig(config) {
         if (typeof config === 'object' && config !== null) {
@@ -728,6 +918,12 @@ class InfMarketingModalComponent extends HTMLElement {
                 this.iframeConfig.intro_mode = (config.intro_mode === 'v1' || config.intro_mode === 'v2')
                     ? config.intro_mode
                     : null;
+            }
+            if (Object.prototype.hasOwnProperty.call(config, 'enable_guide')) {
+                this.iframeConfig.enable_guide = config.enable_guide === true;
+            }
+            if (Object.prototype.hasOwnProperty.call(config, 'lang')) {
+                this.iframeConfig.lang = normalizeIframeLang(config.lang);
             }
         }
     }
@@ -815,6 +1011,14 @@ class InfMarketingModalComponent extends HTMLElement {
     }
 
     /**
+     * 設置 iframe UI 語系
+     * @param {'zh-TW'|'en'|string} lang - 語系（'zh-TW' / 'en' 等；空值則清除）
+     */
+    setIframeLang(lang) {
+        this.iframeConfig.lang = normalizeIframeLang(lang);
+    }
+
+    /**
      * 切換彈窗顯示狀態
      */
     toggle() {
@@ -856,15 +1060,23 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.config = {
             position: 'RightDown', // 'LeftDown', 'RightDown', 'CenterDown', 'Center'
-            title: '精選購物之旅',
-            description: '找到您的個人化專屬商品',
-            buttonText: '立即開始',
+            title: parentUiT(PARENT_UI_DEFAULT_LANG, 'banner.defaultTitle'),
+            description: parentUiT(PARENT_UI_DEFAULT_LANG, 'banner.defaultDescription'),
+            buttonText: parentUiT(PARENT_UI_DEFAULT_LANG, 'banner.defaultCta'),
             buttonColor: '#ddd',
             buttonTextColor: '#1E1E19',
             todayDisplayMode: false, // 預設顯示 checkbox
             TimeValid: null // 時間有效性驗證
         };
         this.modalIframeUrl = null; // 智慧選物彈窗的 iframe URL
+    }
+
+    _getUiLang() {
+        return getParentUiLang(this.getAttribute('ui-lang'));
+    }
+
+    _t(key, replacements) {
+        return parentUiT(this._getUiLang(), key, replacements);
     }
 
     connectedCallback() {
@@ -957,12 +1169,14 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color', 'today-display-mode', 'time-valid'];
+        return ['position', 'title', 'description', 'button-text', 'button-color', 'button-text-color', 'today-display-mode', 'time-valid', 'ui-lang'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue !== newValue) {
             switch (name) {
+                case 'ui-lang':
+                    break;
                 case 'position':
                     this.config.position = newValue;
                 break;
@@ -1061,6 +1275,8 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
     render() {
         const positionStyles = this.getPositionStyles();
         const animationName = this.getAnimationName();
+        const closeLabel = escapeHtmlForTooltip(this._t('common.close'));
+        const dontShowToday = escapeHtmlForTooltip(this._t('common.dontShowToday'));
         
         this.shadowRoot.innerHTML = `
             <style>
@@ -1504,11 +1720,11 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                 <div class="dont-show-today-container">
                     <label class="dont-show-today-label">
                         <input type="checkbox" class="dont-show-today-checkbox" id="dont-show-today">
-                        <span class="dont-show-today-text">今日不再顯示</span>
+                        <span class="dont-show-today-text">${dontShowToday}</span>
                     </label>
                 </div>
                 ` : ''}
-                <button class="close-button" title="關閉">
+                <button class="close-button" title="${closeLabel}">
                      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
@@ -1594,26 +1810,16 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
             // 動態創建彈窗組件
             modal = document.createElement('inf-marketing-modal');
             modal.id = 'inf-smart-selection-modal';
+            modal.setAttribute('ui-lang', this.getAttribute('ui-lang') || PARENT_UI_DEFAULT_LANG);
             
             // 添加默認內容
-            modal.innerHTML = `
-                <div slot="content">
-                    <div style="padding: 40px; text-align: center; color: #333;">
-                        <h2 style="margin: 0 0 20px 0; color: #667eea;">🎯 智慧選物</h2>
-                        <p style="margin: 0 0 15px 0; line-height: 1.6;">正在載入智慧選物介面...</p>
-                        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                            <p style="margin: 0; font-size: 14px; color: #6c757d;">
-                                💡 提示：如果看到此訊息，表示彈窗功能正常，但尚未設置 iframe URL。
-                            </p>
-                        </div>
-                        <p style="margin: 15px 0 0 0; font-size: 12px; color: #aaa;">
-                            請聯繫管理員設置智慧選物頁面 URL
-                        </p>
-                    </div>
-                </div>
-            `;
+            modal.innerHTML = getModalFallbackContentHtml(this.getAttribute('ui-lang'));
             
             document.body.appendChild(modal);
+        }
+
+        if (modal && this.getAttribute('ui-lang')) {
+            modal.setAttribute('ui-lang', this.getAttribute('ui-lang'));
         }
         
         // 設置 iframe 配置參數（如果組件支援）
@@ -1785,7 +1991,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         trigger.classList.remove('ai-pd-container__trigger--search');
         trigger.classList.remove('ai-pd-container__trigger--close');
         trigger.classList.add('ai-pd-container__trigger--result');
-        trigger.title = '查看搜尋結果';
+        trigger.title = this._t('float.viewResults');
     }
 
     // 重置為搜尋狀態
@@ -1796,7 +2002,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         trigger.classList.remove('ai-pd-container__trigger--result');
         trigger.classList.remove('ai-pd-container__trigger--close');
         trigger.classList.add('ai-pd-container__trigger--search');
-        trigger.title = '開啟智慧選物';
+        trigger.title = this._t('float.openSmartSelection');
     }
 
     disconnectedCallback() {
@@ -1831,12 +2037,30 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         this.dragStartTime = 0; // 觸摸開始時間
     }
 
+    _getUiLang() {
+        return getParentUiLang(this.getAttribute('ui-lang'));
+    }
+
+    _t(key, replacements) {
+        return parentUiT(this._getUiLang(), key, replacements);
+    }
+
     static get observedAttributes() {
-        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed', 'today-display-mode', 'time-valid'];
+        return ['position', 'images', 'width', 'height', 'auto-show', 'show-arrows', 'autoplay-speed', 'today-display-mode', 'time-valid', 'ui-lang'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue !== newValue && this.isInitialized) {
+            if (name === 'ui-lang') {
+                this.render();
+                this.setupEventListeners();
+                if (this.imageData.length > 0) {
+                    this.createSlides();
+                    this.updateCounter();
+                    this.updateArrowsVisibility();
+                }
+                return;
+            }
             if (name === 'position' || name === 'width' || name === 'height') {
                 this.updateStyles();
             } else if (name === 'images') {
@@ -2124,7 +2348,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 if (!currentItem) return;
 
                 // 根據當前顯示圖片的 Title 判斷是否為智慧選物
-                if (currentItem.Title === '智慧選物') {
+                if (isSmartSelectionCardItem(currentItem)) {
                     // 使用預設的智慧選物 URL 或現有的 iframe URL
                     const defaultUrl = 'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
                     this.showSmartSelectionModal(this.modalIframeUrl || defaultUrl);
@@ -2260,26 +2484,16 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
             // 動態創建彈窗組件
             modal = document.createElement('inf-marketing-modal');
             modal.id = 'inf-smart-selection-modal';
+            modal.setAttribute('ui-lang', this.getAttribute('ui-lang') || PARENT_UI_DEFAULT_LANG);
             
             // 添加默認內容
-            modal.innerHTML = `
-                <div slot="content">
-                    <div style="padding: 40px; text-align: center; color: #333;">
-                        <h2 style="margin: 0 0 20px 0; color: #667eea;">🎯 智慧選物</h2>
-                        <p style="margin: 0 0 15px 0; line-height: 1.6;">正在載入智慧選物介面...</p>
-                        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                            <p style="margin: 0; font-size: 14px; color: #6c757d;">
-                                💡 提示：如果看到此訊息，表示彈窗功能正常，但尚未設置 iframe URL。
-                            </p>
-                        </div>
-                        <p style="margin: 15px 0 0 0; font-size: 12px; color: #aaa;">
-                            請聯繫管理員設置智慧選物頁面 URL
-                        </p>
-                    </div>
-                </div>
-            `;
+            modal.innerHTML = getModalFallbackContentHtml(this.getAttribute('ui-lang'));
             
             document.body.appendChild(modal);
+        }
+
+        if (modal && this.getAttribute('ui-lang')) {
+            modal.setAttribute('ui-lang', this.getAttribute('ui-lang'));
         }
         
         // 設置 iframe 配置參數（如果組件支援）
@@ -2415,7 +2629,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         trigger.classList.remove('ai-pd-container__trigger--search');
         trigger.classList.remove('ai-pd-container__trigger--close');
         trigger.classList.add('ai-pd-container__trigger--result');
-        trigger.title = '查看搜尋結果';
+        trigger.title = this._t('float.viewResults');
     }
 
     // 重置為搜尋狀態
@@ -2426,7 +2640,7 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         trigger.classList.remove('ai-pd-container__trigger--result');
         trigger.classList.remove('ai-pd-container__trigger--close');
         trigger.classList.add('ai-pd-container__trigger--search');
-        trigger.title = '開啟智慧選物';
+        trigger.title = this._t('float.openSmartSelection');
     }
 
     // 拖拽開始
@@ -2715,6 +2929,10 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
         const positionStyles = {
             transform: positionTransform
         };
+        const closeLabel = escapeHtmlForTooltip(this._t('common.close'));
+        const dontShowToday = escapeHtmlForTooltip(this._t('common.dontShowToday'));
+        const navPrev = escapeHtmlForTooltip(this._t('card.navPrev'));
+        const navNext = escapeHtmlForTooltip(this._t('card.navNext'));
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -3067,24 +3285,24 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                 <div class="dont-show-today-container">
                     <label class="dont-show-today-label">
                         <input type="checkbox" class="dont-show-today-checkbox" id="dont-show-today">
-                        <span class="dont-show-today-text">今日不再顯示</span>
+                        <span class="dont-show-today-text">${dontShowToday}</span>
                     </label>
                 </div>
                 ` : ''}
                 <div class="image-counter">1/1</div>
-                <button class="close-button" title="關閉">
+                <button class="close-button" title="${closeLabel}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M18 6L6 18M6 6L18 18" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
                 
-                <button class="nav-button prev" title="上一張">
+                <button class="nav-button prev" title="${navPrev}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15 18L9 12L15 6" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
                 
-                <button class="nav-button next" title="下一張">
+                <button class="nav-button next" title="${navNext}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 18L15 12L9 6" stroke="#fefefe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
@@ -3125,7 +3343,8 @@ customElements.define('inf-marketing-square-card-banner', InfMarketingSquareCard
 // inf-marketing-floating-button-component.js
 // 封裝浮動按鈕，點擊時開啟/關閉 inf-marketing-modal 彈窗
 
-const FLOATING_TOOLTIP_TEXT = '來試試 infFITS 個人化推薦購物！';
+const FLOATING_GUIDE_STORAGE_KEY = 'inf-marketing-float-guide-dismissed';
+const MULTI_ROUTE_REOPEN_ICON = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2.25 4.25h9.5M2.25 7h9.5M2.25 9.75h9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 const FLOATING_TOOLTIP_LOGO_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAZKADAAQAAAABAAAAZAAAAAAvu95BAAAH+ElEQVR4Ae2cu24VOxSG2Xvn5HIEElKkiIYgIVFHKWiQeAKqQ09JmbxDKmqegXS8QJ6BkgqkRELcRINAAgLksnO+yX9YcuaGvWc82xx5kCYee9nj9c3vNR7PbEZnZ2eX8uZHYOxnlq0KAhlWgA4yrAwrgECAaVZWhhVAIMA0KyvDCiAQYJqVlWEFEAgwzcrKsAIIBJhmZWVYAQQCTLOy/newjo6OAnyKZjpKfPFvOp2ORv918mx6NhqPxuPyaJALmEHJTfcOrXzi3k/QpcHj42PQQIE96aXlpeXlZQ5tI38ymfx1vi0uLnKuHz9+UBpJAUnDAsLh4eHt27fxH0yn55tLijSAhAYNwuvKlSsSY5eL1FQ31kVoOp9PPiJaWFiYnhb/lpaWkA/++1QUO1lalZ8/f9KIT/Xf2iSnLEghINxe+XtFTvqPKSxtA/GjR4/wX8PztyB8DJJTFt7aQCPBIW6Dz8cZ10Z6ZH9ycuIqzrUJTSenLOigBZwkYEkmM5AyCmhT8rScLokkYHELkw8EGqIVWgAT45H9zL4pZn3//p12bty4QTtqc+YGqZgELC4+007ce/XqVRdnmuq+efMGUgxG1Npk45OfRMzi4ssN5gfuZL2LskrOK3iR2SV+JaEskTJ/Sn4GHdJIrT1z1+vXr3chRbP1TdeeL14mA/D05BQdEcvZ2+aeEaBydWVlZXNz8+S4iGtfvnzBBhDaQ0ppt6JqId537965+bOkrWdzTADrwYMH7QFFktnb27N+ihdzTt0ugULsqzaiinfv3i0uycWLYU15Jop7xNw34pRcah8mcrXJ4adPn0ospkFa29raknfUAq74zuxvErDoPbDaJ0QvX77EzNShBLJiM+eBRTsw2t3d5QLIHoMmvlbRM5HE3fDjx49ra2v43xJHEMVkYSIbcOCexNhSBRuVtgu2pYVSURIB/vPnz1DApZL/OmR//5/7kKLrpEWqL/9LONoPk4DFOoxAlMQlgsV+PHKL5kKKHi60sxyy1MVh52UoEbCLADQ9m14q1CdSNsTMcoBEQrDwHxBVCkyRitE3Ltb5tMlGe7H7VXLhb0vRBTvvg4RgtfcZz+V8lWZ7xR5Lk4hZPv7MnRSd/GNg0dc5akqX80+C5SPAqDYZVgDeDCsxWP6xRlE8oPvDmtbMa3rvALCgcOvWraZH5U+fPvF4yBMv808W4N0OCHQ7xPfv31+7ds2tFSkdfZ4lUszOX79+7S4Zu/7AQmYsD7j5qaWjw+K1Ms/AULBFqyoCSOmZWU88ro7cdLXiwDnRA7xWC1jt5WUEUJo23oBVV4QHZvHb00VXlnqAcOzlYLVPyIcHwKREVO0kOQPBqj13KRPRJc4r+jAsEfmjD4eAVbtQVaKGrEo5HCK0pOQWfRhyE5yMJ/bATvAilmsOQRqO2ouLy8ty4IWNW+Smi9c2F6dmbmm/6eiw+CQGb9k04YSOzbakOG6CJIqv16ZTbOw+QBVcFUqKdFjr/OXLl8nHIHbIiw5LTuLGs2fPcAl2vEb+8OEDyJhMPH/+nD0fbjx+/LgWhKqvr68/fPiw1oBMMYpNqjg7vRlgkzR0ItK81wKW3ughJZAJRO1Xesjt3r171KrdBui8nSK6skTB3SMBZqqTS8WrLTYeGO2ZsRR9sKSjTMEYpEMIRx1q3jcGzuYqs5S0u8onZ2oU7czS+lB1BoLV7o7eG1aBWo4l2tuJXZoELLsDxva2Y/tJwJJwCE8dnYldPQlYWVkBl/nbt29YVwOT5fA+OqC5aKZJdKJFWcYrGoGAhqPA4gNRuuA/DyBa1T79WX7xUUgCWxRY9i2Vp4M7OzuQrYqIubtasIRng5HMosDSfY2nGU9x7e/v63EaJ0Fmm56HKErlRkk/et+YZPK0zMiy71/bTyEhYG+YlDB2TPHbWximtNODNMLh4vNIrK+AidNPnjyxISDnKdX3ryRqXbIhBiCjY7D0FoMT1dYdOLPrS1ZiOT+h3NjYePHihblKAjdsD6za+A0+e4TGWJuQKa1GqEsLv8rn+bfrqsPi0qICkyKLBSn5iWfkszi3urrKolXJUUghKxYVSvmlw+3t7VLOvA47KQsiXHY53OI2vJAGBu4KDIcoC7eRkpHVocuCpUEiINegVpuu5QDpCx0NPR9OWnBpqusOqyablnzBwqAFaEv1fos6TR0AYeOu326pNdQkWXEbidF+aJudYGkYsmdMhZ7Yx54fE+hT5drlZp8W+rXpNAzdUNI03JryfdygfZ3CHYNU7NKmz3mbbDopy+0031hx6OY0nbKaDwu9MUOh4kLi+Ki4Syquq2XbV1sYJqc3WFevXmWlhV9OztBvSCkqcbuECICY3zJ9m6GpqFU6wXJ7hiIg9fXrVzfTM605BMYMujt37miGkUiccl3oFLPchuRqdaSQUzKrHjLoAAQpnihhxOt+rVtULeeb0yeskicCh+JIKBKVDDTpp4jt4ODg5s2bJYPUDnsbhq5jOK8fiKOXt2/fclg7/2Zaz39PQSDHAFIoy20kwXT9Ne+ro1oyHU9qflHJBEqzM0jx3als+jpvpHaiKIu+goCN370RfWBBDipTpvaQQkqFzfnbfJUmLq64yvK8wiCTJYnaAevZTmyzWMqard8+t87ZWu6lVlqwenEpXiMZVgDbJGJWQH/napqVFYA/w8qwAggEmGZlZVgBBAJMs7IyrAACAaZZWRlWAIEA06ysDCuAQIDpv7C4Y58J8ljXAAAAAElFTkSuQmCC';
 
 const FLOATING_BTN_STYLE = `
@@ -3152,12 +3371,245 @@ const FLOATING_BTN_STYLE = `
 .ai-pd-container__anchor--modal-open {
   z-index: 2000000000;
 }
+.ai-pd-container__anchor--guide-active {
+  z-index: 1999999991;
+}
+.ai-pd-container__guide-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1999999990;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+}
+.ai-pd-container__guide-mask[hidden] {
+  display: none !important;
+}
+.ai-pd-container__guide-card {
+  position: absolute;
+  bottom: calc(100% + 16px);
+  z-index: 3;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  min-width: 200px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  color: #1e1e19;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+.ai-pd-container__guide-card[hidden] {
+  display: none !important;
+}
+.ai-pd-container__guide-card--align-end {
+  right: 0;
+  left: auto;
+}
+.ai-pd-container__guide-card--align-start {
+  left: 0;
+  right: auto;
+}
+.ai-pd-container__guide-card--align-center {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+.ai-pd-container__guide-card-text {
+  margin: 0 0 12px;
+}
+.ai-pd-container__guide-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.ai-pd-container__guide-btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+.ai-pd-container__guide-btn--skip {
+  background: transparent;
+  color: #6b6b63;
+}
+.ai-pd-container__guide-btn--start {
+  background: #1e1e19;
+  color: #ffffff;
+}
+.ai-pd-container__guide-help {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  bottom: auto;
+  right: auto;
+  z-index: 4;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  color: #1e1e19;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.ai-pd-container__guide-help[hidden],
+.ai-pd-container__multi-route-reopen[hidden] {
+  display: none !important;
+}
+/* 引導進行中一律隱藏浮動鈕輔助按鈕，避免與遮罩搶戲 */
+.ai-pd-container__anchor--guide-active .ai-pd-container__guide-help,
+.ai-pd-container__anchor--guide-active .ai-pd-container__multi-route-reopen {
+  display: none !important;
+}
+.ai-pd-container__trigger-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+}
+@media screen and (min-width: 480px) {
+  .ai-pd-container__trigger-wrap {
+    width: 70px;
+    height: 70px;
+  }
+}
+.ai-pd-container__multi-route-reopen {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: auto;
+  z-index: 5;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  color: #1e1e19;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.ai-pd-container__multi-route-reopen svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.ai-pd-container__anchor--align-end .ai-pd-container__multi-route-reopen,
+.ai-pd-container__anchor--align-end .ai-pd-container__guide-help {
+  left: auto;
+  right: -6px;
+}
+.ai-pd-container__trigger--guide-spotlight {
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px rgba(255, 255, 255, 0.35),
+    0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.ai-pd-container__tooltip-stack--guide-spotlight {
+  position: relative;
+  z-index: 2;
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px rgba(255, 255, 255, 0.35),
+    0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.ai-pd-container__tooltip-panel--guide-active {
+  position: relative;
+  z-index: 2;
+  animation: ai-pd-panel-guide-pulse 2.2s ease-in-out infinite;
+}
+.ai-pd-container__trigger--guide-secondary-spotlight {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 5px rgba(255, 255, 255, 0.28),
+    0 8px 24px rgba(0, 0, 0, 0.22);
+}
+@keyframes ai-pd-panel-guide-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px #ffffff,
+      0 0 0 7px rgba(255, 255, 255, 0.38),
+      0 16px 40px rgba(0, 0, 0, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px #ffffff,
+      0 0 0 11px rgba(255, 255, 255, 0.22),
+      0 20px 48px rgba(0, 0, 0, 0.24);
+  }
+}
+.ai-pd-container__multi-route-guide-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ai-pd-container__multi-route-guide-footer[hidden] {
+  display: none !important;
+}
+.ai-pd-container__multi-route-guide-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(60, 60, 67, 0.62);
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang TC', 'Noto Sans TC', sans-serif;
+}
+.ai-pd-container__multi-route-guide-skip {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: rgba(120, 120, 128, 0.1);
+  color: rgba(60, 60, 67, 0.72);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.ai-pd-container__multi-route-guide-skip:hover,
+.ai-pd-container__multi-route-guide-skip:focus-visible {
+  background: rgba(120, 120, 128, 0.16);
+  color: rgba(60, 60, 67, 0.9);
+  outline: none;
+}
+.ai-pd-container__guide-card--multi-route {
+  z-index: 4;
+}
+.ai-pd-container__guide-card-actions--multi-route {
+  justify-content: flex-end;
+}
 
 .ai-pd-container__tooltip-wrap {
   position: absolute;
   bottom: calc(100% + 16px);
   z-index: 2;
-  width: max-content;
+  width: auto;
   max-width: min(300px, calc(100vw - 32px));
   min-width: 200px;
   padding-top: 15px;
@@ -3268,7 +3720,7 @@ const FLOATING_BTN_STYLE = `
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  line-height: 1.35;
   text-align: center;
 }
 .ai-pd-container__tooltip-text {
@@ -3276,11 +3728,11 @@ const FLOATING_BTN_STYLE = `
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.35;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang TC', 'Noto Sans TC', sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   max-width: 100%;
   display: block;
   transform: translateY(0.5px);
@@ -3297,12 +3749,179 @@ const FLOATING_BTN_STYLE = `
   animation: ai-pd-tooltip-caret 0.9s steps(1) infinite;
 }
 .ai-pd-container__tooltip-text--done {
-  white-space: nowrap;
+  white-space: normal;
 }
 .ai-pd-container__tooltip-text--done::after {
   content: none;
   display: none;
   animation: none;
+}
+.ai-pd-container__tooltip-wrap--multi {
+  max-width: min(320px, calc(100vw - 32px));
+  min-width: 260px;
+  padding-top: 18px;
+}
+.ai-pd-container__tooltip-wrap--multi .ai-pd-container__tooltip-badge {
+  top: 0;
+  left: 50%;
+  z-index: 6;
+  transform: translate(-50%, -42%);
+}
+.ai-pd-container__tooltip-wrap--multi.ai-pd-container__tooltip-wrap--guide-badge-up .ai-pd-container__tooltip-badge {
+  z-index: 7;
+}
+.ai-pd-container__tooltip-panel {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 14px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+.ai-pd-container__tooltip-panel-header {
+  position: relative;
+  padding-right: 28px;
+}
+.ai-pd-container__tooltip-panel .ai-pd-container__tooltip-close {
+  top: 0;
+  right: 0;
+  transform: none;
+}
+.ai-pd-container__tooltip-panel-title {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang TC', 'Noto Sans TC', sans-serif;
+}
+.ai-pd-container__route-section {
+  margin-top: 12px;
+}
+.ai-pd-container__route-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(60, 60, 67, 0.72);
+  text-transform: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang TC', 'Noto Sans TC', sans-serif;
+}
+.ai-pd-container__route-section-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #007aff;
+  flex-shrink: 0;
+}
+.ai-pd-container__route-section-label[hidden] {
+  display: none !important;
+}
+.ai-pd-container__route-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-pd-container__route-card {
+  appearance: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f5f7;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.ai-pd-container__route-card:hover,
+.ai-pd-container__route-card:focus-visible {
+  background: #1e1e19;
+  border-color: #1e1e19;
+  outline: none;
+}
+.ai-pd-container__route-card:active {
+  transform: scale(0.98);
+}
+.ai-pd-container__route-card--selected {
+  background: #1e1e19;
+  border-color: #1e1e19;
+}
+.ai-pd-container__route-card--selected .ai-pd-container__route-card-text,
+.ai-pd-container__route-card--selected .ai-pd-container__route-card-arrow {
+  color: #ffffff;
+}
+.ai-pd-container__tooltip-panel--guide-active .ai-pd-container__tooltip-close {
+  display: none !important;
+}
+.ai-pd-container__tooltip-panel--guide-active .ai-pd-container__route-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.ai-pd-container__tooltip-panel--guide-active .ai-pd-container__route-card--selected {
+  background: #1e1e19;
+  border-color: #1e1e19;
+  box-shadow: none;
+}
+.ai-pd-container__tooltip-panel--guide-active .ai-pd-container__route-card:hover,
+.ai-pd-container__tooltip-panel--guide-active .ai-pd-container__route-card:focus-visible {
+  background: #1e1e19;
+  border-color: #1e1e19;
+  box-shadow: none;
+}
+.ai-pd-container__route-card-text {
+  flex: 1;
+  min-width: 0;
+  color: #1d1d1f;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  transition: color 0.2s ease;
+}
+.ai-pd-container__route-card:hover .ai-pd-container__route-card-text,
+.ai-pd-container__route-card:focus-visible .ai-pd-container__route-card-text {
+  color: #ffffff;
+}
+.ai-pd-container__route-card-arrow {
+  flex-shrink: 0;
+  color: rgba(60, 60, 67, 0.45);
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+.ai-pd-container__route-card:hover .ai-pd-container__route-card-arrow,
+.ai-pd-container__route-card:focus-visible .ai-pd-container__route-card-arrow {
+  color: #ffffff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-pd-container__tooltip-panel--guide-active {
+    animation: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ai-pd-container__tooltip-wrap {
@@ -3459,24 +4078,52 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._onTooltipCloseClick = this._onTooltipCloseClick.bind(this);
     this._onTooltipClick = this._onTooltipClick.bind(this);
     this._onTooltipKeyDown = this._onTooltipKeyDown.bind(this);
+    this._onGuideStartClick = this._onGuideStartClick.bind(this);
+    this._onGuideSkipClick = this._onGuideSkipClick.bind(this);
+    this._onGuideHelpClick = this._onGuideHelpClick.bind(this);
+    this._onMultiRouteReopenClick = this._onMultiRouteReopenClick.bind(this);
+    this._onRouteCardClick = this._onRouteCardClick.bind(this);
     this._isModalOpen = false; // 追蹤彈窗狀態
     this._hasResult = false; // 追蹤是否有搜尋結果
     this._tooltipDismissed = false; // 本次瀏覽是否已關閉打字機對話框
     this._typewriterTimer = null; // 打字機計時器
     this._typewriterCompleted = false; // 打字機是否已跑完一次
+    this._guideActive = false; // 遮罩引導是否進行中
+    this._guideStep = 'float-button'; // 'multi-route' | 'float-button'
+    this._iframeIntroActive = false; // iframe 內引導是否進行中（進行中隱藏「?」）
     this.config = {
       TimeValid: null // 時間有效性驗證
     };
   }
 
   static get observedAttributes() {
-    return ['position', 'time-valid', 'float-tooltip-text'];
+    return ['position', 'time-valid', 'float-tooltip-text', 'enable-guide', 'show-float-guide', 'enable-multi-route', 'multi-route-list', 'multi-route-selected', 'ui-lang'];
+  }
+
+  _getUiLang() {
+    return getParentUiLang(this.getAttribute('ui-lang'));
+  }
+
+  _t(key, replacements) {
+    return parentUiT(this._getUiLang(), key, replacements);
+  }
+
+  _getTooltipAriaLabel(text) {
+    if (!text) return this._t('float.openSmartSelection');
+    return this._t('float.openSmartSelectionWith', { text: text });
+  }
+
+  _getRouteCardLabel(item) {
+    if (item && item.isAiRoute) return this._t('float.aiRouteLabel');
+    return (item && (item.label || item.route)) || '';
   }
 
   // 未設屬性 → 預設文案；空字串 → 不顯示對話框；其餘 → 自訂文案
   _getTooltipText() {
     if (!this.hasAttribute('float-tooltip-text')) {
-      return FLOATING_TOOLTIP_TEXT;
+      return this._isMultiRouteEnabled()
+        ? this._t('float.multiRouteTooltip')
+        : this._t('float.tooltip');
     }
     return this.getAttribute('float-tooltip-text') || '';
   }
@@ -3485,20 +4132,81 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     return this.hasAttribute('float-tooltip-text') && !this.getAttribute('float-tooltip-text');
   }
 
+  _isMultiRouteEnabled() {
+    return this.getAttribute('enable-multi-route') === 'true';
+  }
+
+  _getMultiRouteList() {
+    if (!this.hasAttribute('multi-route-list')) return [];
+    try {
+      const parsed = JSON.parse(this.getAttribute('multi-route-list'));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  _getMultiRouteSelectedId() {
+    return (this.getAttribute('multi-route-selected') || '').trim();
+  }
+
+  _shouldUseMultiRouteTooltip() {
+    return this._isMultiRouteEnabled() && this._getMultiRouteList().length > 0;
+  }
+
+  _syncMultiRouteSelectedUi() {
+    if (!this.shadowRoot) return;
+    const selectedId = this._getMultiRouteSelectedId();
+    this.shadowRoot.querySelectorAll('.ai-pd-container__route-card').forEach((card) => {
+      const isSelected = selectedId && card.getAttribute('data-route-id') === selectedId;
+      card.classList.toggle('ai-pd-container__route-card--selected', isSelected);
+      if (isSelected) {
+        card.setAttribute('aria-current', 'true');
+      } else {
+        card.removeAttribute('aria-current');
+      }
+    });
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (name === 'position') {
       this.updatePosition();
       } else if (name === 'float-tooltip-text') {
         this._typewriterCompleted = false;
-        if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container__tooltip')) {
+        if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container')) {
           const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
           const text = this._getTooltipText();
           if (tooltip) {
-            tooltip.setAttribute('aria-label', text ? `開啟智慧選物：${text}` : '開啟智慧選物');
+            tooltip.setAttribute('aria-label', this._getTooltipAriaLabel(text));
           }
           this._syncTooltipVisibility();
         }
+      } else if (name === 'ui-lang') {
+        if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container')) {
+          this._typewriterCompleted = false;
+          this.removeEventListeners();
+          this.render();
+          this.setupEventListeners();
+          this._syncTooltipVisibility();
+          this._updateButtonState();
+          if (this._guideActive) {
+            this._updateGuideCardForStep();
+          }
+        }
+      } else if (name === 'enable-guide' || name === 'show-float-guide') {
+        if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container')) {
+          this._initFloatGuide();
+        }
+      } else if (name === 'enable-multi-route' || name === 'multi-route-list') {
+        if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container')) {
+          this.removeEventListeners();
+          this.render();
+          this.setupEventListeners();
+          this._syncTooltipVisibility();
+        }
+      } else if (name === 'multi-route-selected') {
+        this._syncMultiRouteSelectedUi();
       } else if (name === 'time-valid') {
         if (newValue) {
           try {
@@ -3552,6 +4260,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (!document.querySelector('inf-marketing-modal')) {
       const modal = document.createElement('inf-marketing-modal');
       modal.setAttribute('id', 'infMarketingModal');
+      if (this.getAttribute('ui-lang')) {
+        modal.setAttribute('ui-lang', this.getAttribute('ui-lang'));
+      }
       document.body.appendChild(modal);
     }
     this._modal = document.querySelector('inf-marketing-modal');
@@ -3562,6 +4273,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 監聽 iframe 消息
     this._setupIframeMessageListener();
     this._syncTooltipVisibility();
+    this._initFloatGuide();
   }
 
   /**
@@ -3628,7 +4340,11 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 監聽彈窗隱藏事件
     this._modal.addEventListener('inf-marketing-modal:hide', () => {
       this._isModalOpen = false;
+      this._iframeIntroActive = false;
       this._updateButtonState();
+      this._syncGuideHelpVisibility();
+      // modal 關閉後恢復 float_tooltip（若尚未手動關閉且已設定文案）
+      this._syncTooltipVisibility();
     });
   }
 
@@ -3643,7 +4359,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       trigger.classList.remove('ai-pd-container__trigger--search');
       trigger.classList.remove('ai-pd-container__trigger--result');
       trigger.classList.add('ai-pd-container__trigger--close');
-      trigger.title = '關閉智慧選物';
+      trigger.title = this._t('float.closeSmartSelection');
       // 添加 modal-open 類別，z-index 設為 2000000000
       if (anchor) {
         anchor.classList.add('ai-pd-container__anchor--modal-open');
@@ -3660,12 +4376,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       if (this._hasResult) {
         trigger.classList.remove('ai-pd-container__trigger--search');
         trigger.classList.add('ai-pd-container__trigger--result');
-        trigger.title = '查看搜尋結果';
+        trigger.title = this._t('float.viewResults');
       } else {
         // 否則恢復到搜尋狀態
         trigger.classList.remove('ai-pd-container__trigger--result');
         trigger.classList.add('ai-pd-container__trigger--search');
-        trigger.title = '開啟智慧選物';
+        trigger.title = this._t('float.openSmartSelection');
       }
     }
     this._syncTooltipVisibility();
@@ -3673,6 +4389,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
 
   // 關閉打字機對話框（當前頁面實例不再顯示）
   _dismissTooltip() {
+    if (this._guideActive && this._isMultiRouteGuideStep()) {
+      return;
+    }
     this._tooltipDismissed = true;
     this._syncTooltipVisibility();
   }
@@ -3680,6 +4399,9 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   _onTooltipCloseClick(event) {
     event.preventDefault();
     event.stopPropagation();
+    if (this._guideActive && this._isMultiRouteGuideStep()) {
+      return;
+    }
     this._dismissTooltip();
   }
 
@@ -3699,6 +4421,53 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     event.preventDefault();
     this._trackFloatTooltipGa4();
     this._openSmartSelectionFromTooltip();
+  }
+
+  async _onRouteCardClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const routeId = event.currentTarget.getAttribute('data-route-id');
+    if (!routeId) return;
+
+    const wasMultiRouteGuide = this._guideActive && this._isMultiRouteGuideStep();
+    const modalWasOpen = this._modal && this._modal.visible;
+
+    const manager = window.infMarketingManager;
+    if (manager && typeof manager.switchRoute === 'function') {
+      const switched = await manager.switchRoute(routeId);
+      if (!switched) return;
+    }
+
+    this._trackFloatTooltipGa4();
+
+    if (wasMultiRouteGuide && this._isGuideFeatureEnabled()) {
+      this._markGuideDismissedStored();
+      this._hideGuide();
+      this._openSmartSelectionFromGuide();
+      return;
+    }
+
+    if (modalWasOpen) {
+      this._reloadModalForCurrentRoute();
+      this._dismissTooltip();
+      return;
+    }
+
+    this._openSmartSelectionFromTooltip();
+  }
+
+  // modal 已開啟時切換動線：強制以新 URL／設定重載 iframe
+  _reloadModalForCurrentRoute() {
+    if (!this._modal) return;
+    const manager = window.infMarketingManager;
+    if (manager && this._modal.setIframeConfig) {
+      this._modal.setIframeConfig(manager.getIframeConfigPayload());
+    }
+    if (this.modalIframeUrl && this._modal.setIframeUrl) {
+      this._modal.setIframeUrl(this.modalIframeUrl);
+    }
+    this._iframeIntroActive = false;
+    this._syncGuideHelpVisibility();
   }
 
   _trackFloatTooltipGa4() {
@@ -3823,17 +4592,49 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     typeNext();
   }
 
-  // 僅在搜尋狀態且未關閉時顯示對話框
+  // modal 關閉後，搜尋或結果狀態且未手動關閉時顯示對話框
   _syncTooltipVisibility() {
     const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap');
     const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
-    if (!tooltip || !trigger) return;
+    if (!tooltip || !trigger) {
+      this._syncGuideHelpVisibility();
+      return;
+    }
 
-    const isSearchState = trigger.classList.contains('ai-pd-container__trigger--search')
-      && !trigger.classList.contains('ai-pd-container__trigger--close')
-      && !trigger.classList.contains('ai-pd-container__trigger--result');
+    // 多動線導覽第一步：保留 tooltip；其餘引導中隱藏
+    if (
+      (this._guideActive && !this._isMultiRouteGuideStep())
+      || this._isModalOpen
+      || (this._modal && this._modal.visible)
+    ) {
+      tooltip.hidden = true;
+      this._stopTypewriter();
+      this._syncGuideHelpVisibility();
+      return;
+    }
 
-    if (!this._tooltipDismissed && isSearchState && !this._isTooltipDisabledByText()) {
+    const isInviteState = !trigger.classList.contains('ai-pd-container__trigger--close');
+
+    if (this._shouldUseMultiRouteTooltip()) {
+      const titleEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip-panel-title');
+      const tooltipText = this._getTooltipText();
+      if (titleEl && tooltipText) {
+        titleEl.textContent = tooltipText;
+      }
+      const forceShowForGuide = this._guideActive && this._isMultiRouteGuideStep();
+      if ((forceShowForGuide || !this._tooltipDismissed) && isInviteState && !this._isTooltipDisabledByText()) {
+        tooltip.hidden = false;
+      } else {
+        tooltip.hidden = true;
+      }
+      if (forceShowForGuide) {
+        this._syncMultiRouteInlineGuide();
+      }
+      this._syncGuideHelpVisibility();
+      return;
+    }
+
+    if (!this._tooltipDismissed && isInviteState && !this._isTooltipDisabledByText()) {
       const needsStart = tooltip.hidden || (!this._typewriterTimer && !this._typewriterCompleted);
       tooltip.hidden = false;
       if (needsStart) {
@@ -3850,6 +4651,368 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       tooltip.hidden = true;
       this._stopTypewriter();
     }
+    this._syncGuideHelpVisibility();
+  }
+
+  _shouldShowMultiRouteReopen() {
+    if (!this._isMultiRouteEnabled() || this._getMultiRouteList().length === 0) return false;
+    if (this._guideActive || this._iframeIntroActive) return false;
+    if (this._isModalOpen || (this._modal && this._modal.visible)) return false;
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    if (!trigger || trigger.classList.contains('ai-pd-container__trigger--close')) return false;
+    if (this._isTooltipDisabledByText()) return false;
+    return this._tooltipDismissed;
+  }
+
+  _reopenMultiRoutePanel() {
+    this._tooltipDismissed = false;
+    this._syncTooltipVisibility();
+  }
+
+  // ---- 遮罩引導教學 ----
+  _isGuideDismissedStored() {
+    try {
+      return localStorage.getItem(FLOATING_GUIDE_STORAGE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  _markGuideDismissedStored() {
+    try {
+      localStorage.setItem(FLOATING_GUIDE_STORAGE_KEY, '1');
+    } catch (e) {
+      // 隱私模式等無法寫入時略過
+    }
+  }
+
+  _clearGuideDismissedStored() {
+    try {
+      localStorage.removeItem(FLOATING_GUIDE_STORAGE_KEY);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  _isGuideFeatureEnabled() {
+    return this.getAttribute('enable-guide') === 'true';
+  }
+
+  _isMultiRouteGuideStep() {
+    return this._guideStep === 'multi-route';
+  }
+
+  _shouldForceShowGuide() {
+    return this.getAttribute('show-float-guide') === 'true';
+  }
+
+  _initFloatGuide() {
+    // 預設關閉；需 options.enable_guide === true 才啟用引導
+    if (!this._isGuideFeatureEnabled()) {
+      this._hideGuide();
+      this._syncGuideHelpVisibility();
+      return;
+    }
+    if (this._shouldForceShowGuide() || !this._isGuideDismissedStored()) {
+      this._showGuide();
+    } else {
+      this._hideGuide();
+      this._syncGuideHelpVisibility();
+    }
+  }
+
+  _getGuideCardAlignClass() {
+    const position = this.getAttribute('position') || 'LeftDown';
+    if (position === 'RightDown') return 'ai-pd-container__guide-card--align-end';
+    if (position === 'LeftDown') return 'ai-pd-container__guide-card--align-start';
+    return 'ai-pd-container__guide-card--align-center';
+  }
+
+  _resetGuideCardPosition() {
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    if (!card) return;
+    card.style.position = '';
+    card.style.left = '';
+    card.style.top = '';
+    card.style.bottom = '';
+    card.style.right = '';
+    card.style.transform = '';
+  }
+
+  _syncMultiRouteInlineGuide() {
+    const footer = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-footer');
+    const sectionLabel = this.shadowRoot.querySelector('.ai-pd-container__route-section-label');
+    const panel = this.shadowRoot.querySelector('.ai-pd-container__tooltip-panel');
+    const tooltipWrap = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap--multi');
+    const closeBtn = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap--multi .ai-pd-container__tooltip-close');
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    const isGuide = this._guideActive && this._isMultiRouteGuideStep();
+    if (footer) footer.hidden = !isGuide;
+    if (sectionLabel) sectionLabel.hidden = !isGuide;
+    if (closeBtn) closeBtn.hidden = isGuide;
+    if (panel) panel.classList.toggle('ai-pd-container__tooltip-panel--guide-active', isGuide);
+    if (tooltipWrap) tooltipWrap.classList.toggle('ai-pd-container__tooltip-wrap--guide-badge-up', isGuide);
+    if (trigger) trigger.classList.toggle('ai-pd-container__trigger--guide-secondary-spotlight', isGuide);
+  }
+
+  _updateGuideCardForStep() {
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    const cardText = this.shadowRoot.querySelector('.ai-pd-container__guide-card-text');
+    const startBtn = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    if (!cardText || !card) return;
+
+    if (this._isMultiRouteGuideStep()) {
+      card.hidden = true;
+      if (startBtn) startBtn.hidden = true;
+      this._syncMultiRouteInlineGuide();
+      return;
+    }
+
+    card.hidden = false;
+    cardText.textContent = this._t('float.guideTapHere');
+    if (startBtn) {
+      startBtn.hidden = false;
+      startBtn.textContent = this._t('float.guideStart');
+    }
+    card.classList.remove('ai-pd-container__guide-card--multi-route');
+    this._resetGuideCardPosition();
+    const footer = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-footer');
+    const sectionLabel = this.shadowRoot.querySelector('.ai-pd-container__route-section-label');
+    if (footer) footer.hidden = true;
+    if (sectionLabel) sectionLabel.hidden = true;
+    const panel = this.shadowRoot.querySelector('.ai-pd-container__tooltip-panel');
+    if (panel) panel.classList.remove('ai-pd-container__tooltip-panel--guide-active');
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    if (trigger) trigger.classList.remove('ai-pd-container__trigger--guide-secondary-spotlight');
+  }
+
+  _clearGuideSpotlights() {
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    if (trigger) {
+      trigger.classList.remove('ai-pd-container__trigger--guide-spotlight');
+      trigger.classList.remove('ai-pd-container__trigger--guide-secondary-spotlight');
+    }
+    const panel = this.shadowRoot.querySelector('.ai-pd-container__tooltip-panel');
+    if (panel) panel.classList.remove('ai-pd-container__tooltip-panel--guide-active');
+    const tooltipWrap = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap--multi');
+    if (tooltipWrap) tooltipWrap.classList.remove('ai-pd-container__tooltip-wrap--guide-badge-up');
+    const footer = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-footer');
+    const sectionLabel = this.shadowRoot.querySelector('.ai-pd-container__route-section-label');
+    const closeBtn = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap--multi .ai-pd-container__tooltip-close');
+    if (footer) footer.hidden = true;
+    if (sectionLabel) sectionLabel.hidden = true;
+    if (closeBtn) closeBtn.hidden = false;
+  }
+
+  _applyGuideSpotlight() {
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    this._clearGuideSpotlights();
+    if (this._isMultiRouteGuideStep()) {
+      this._syncMultiRouteInlineGuide();
+    } else if (trigger) {
+      trigger.classList.add('ai-pd-container__trigger--guide-spotlight');
+    }
+  }
+
+  _showGuide() {
+    const mask = this.shadowRoot.querySelector('.ai-pd-container__guide-mask');
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    const help = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (!mask || !card || !anchor || !trigger) return;
+
+    this._guideStep = this._shouldUseMultiRouteTooltip() ? 'multi-route' : 'float-button';
+    this._guideActive = true;
+    mask.hidden = false;
+    card.classList.remove(
+      'ai-pd-container__guide-card--align-start',
+      'ai-pd-container__guide-card--align-end',
+      'ai-pd-container__guide-card--align-center'
+    );
+    card.classList.add(this._getGuideCardAlignClass());
+    anchor.classList.add('ai-pd-container__anchor--guide-active');
+    this._updateGuideCardForStep();
+    this._applyGuideSpotlight();
+    if (help) help.hidden = true;
+    this._syncTooltipVisibility();
+    this._syncGuideHelpVisibility();
+  }
+
+  _hideGuide() {
+    const mask = this.shadowRoot.querySelector('.ai-pd-container__guide-mask');
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+    const startBtn = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    const inlineGuide = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-footer');
+    const sectionLabel = this.shadowRoot.querySelector('.ai-pd-container__route-section-label');
+    if (mask) mask.hidden = true;
+    if (card) {
+      card.hidden = true;
+      card.classList.remove('ai-pd-container__guide-card--multi-route');
+    }
+    if (inlineGuide) inlineGuide.hidden = true;
+    if (sectionLabel) sectionLabel.hidden = true;
+    if (startBtn) startBtn.hidden = false;
+    if (anchor) anchor.classList.remove('ai-pd-container__anchor--guide-active');
+    this._clearGuideSpotlights();
+    this._resetGuideCardPosition();
+    this._guideStep = 'float-button';
+    this._guideActive = false;
+    // 引導結束後恢復 float_tooltip（若尚未被使用者手動關閉）
+    this._syncTooltipVisibility();
+    this._syncGuideHelpVisibility();
+  }
+
+  _isMultiRoutePanelOpen() {
+    if (!this._shouldUseMultiRouteTooltip()) return false;
+    if (this._tooltipDismissed || this._isTooltipDisabledByText()) return false;
+    if (this._isModalOpen || (this._modal && this._modal.visible)) return false;
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    if (!trigger || trigger.classList.contains('ai-pd-container__trigger--close')) return false;
+    return true;
+  }
+
+  _syncGuideHelpVisibility() {
+    const help = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    const reopen = this.shadowRoot.querySelector('.ai-pd-container__multi-route-reopen');
+    const isMultiRoute = this._isMultiRouteEnabled() && this._getMultiRouteList().length > 0;
+
+    const showReplayGuide = this._isGuideFeatureEnabled()
+      && !this._guideActive
+      && !this._iframeIntroActive
+      && this._isGuideDismissedStored();
+
+    // 多動線：列表 icon 與 ? 互斥——面板開啟顯示 ?，面板關閉顯示列表
+    const showReopen = isMultiRoute && this._shouldShowMultiRouteReopen();
+    if (reopen) {
+      reopen.hidden = !showReopen;
+    }
+
+    if (help) {
+      let showHelp = showReplayGuide;
+      if (isMultiRoute) {
+        showHelp = showReplayGuide && this._isMultiRoutePanelOpen();
+      }
+      help.hidden = !showHelp;
+    }
+  }
+
+  _onMultiRouteReopenClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this._modal && this._modal.visible) {
+      this._modal.hide();
+      const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+      if (anchor) anchor.classList.remove('ai-pd-container__anchor--modal-open');
+    }
+    this._reopenMultiRoutePanel();
+  }
+
+  _onGuideStartClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this._completeGuideAndOpen();
+  }
+
+  _onGuideSkipClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this._markGuideDismissedStored();
+    this._hideGuide();
+  }
+
+  _onGuideHelpClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    // 若 modal 開著先關，再重開引導
+    if (this._modal && this._modal.visible) {
+      this._modal.hide();
+      const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+      if (anchor) anchor.classList.remove('ai-pd-container__anchor--modal-open');
+    }
+    this._clearGuideDismissedStored();
+    this._showGuide();
+  }
+
+  _completeGuideAndOpen() {
+    this._markGuideDismissedStored();
+    this._hideGuide();
+    this._openSmartSelectionFromGuide();
+  }
+
+  // 由引導開啟智慧選物，並通知 iframe 重跑 intro
+  _openSmartSelectionFromGuide() {
+    if (!this._modal) return;
+
+    // 引導開啟不永久關閉對話框；關掉 modal 後仍可再顯示 float_tooltip
+    if (this._modal.visible) {
+      this._notifyIframeStartIntro();
+      return;
+    }
+
+    const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+    const isTabletOrLarger = window.innerWidth >= 768;
+
+    if (isTabletOrLarger) {
+      const position = this.getAttribute('position') || 'LeftDown';
+      if (position === 'RightDown') {
+        this._configureModalForRightDown();
+      } else if (position === 'LeftDown') {
+        this._configureModalForLeftDown();
+      }
+    } else {
+      this._resetModalToCenter();
+    }
+
+    if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl(this.modalIframeUrl);
+    } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
+    }
+
+    if (anchor) {
+      anchor.classList.add('ai-pd-container__anchor--modal-open');
+    }
+
+    const showOptions = {
+      preventScroll: !isTabletOrLarger
+    };
+
+    this._triggerFindINFProductAI();
+    this._modal.show(null, showOptions);
+    this._notifyIframeStartIntro();
+  }
+
+  _notifyIframeStartIntro() {
+    try {
+      if (!this._modal || !this._isGuideFeatureEnabled()) return;
+      // 等 iframe 引導結束再顯示「?」
+      this._iframeIntroActive = true;
+      this._syncGuideHelpVisibility();
+      const introMode = (this._modal.iframeConfig &&
+        (this._modal.iframeConfig.intro_mode === 'v1' || this._modal.iframeConfig.intro_mode === 'v2'))
+        ? this._modal.iframeConfig.intro_mode
+        : null;
+      const iframe = this._modal.shadowRoot
+        && (this._modal.shadowRoot.querySelector('#iframe-container iframe')
+          || this._modal.shadowRoot.querySelector('#iframe-container-content'));
+      if (iframe && iframe.contentWindow) {
+        if (typeof this._modal.sendIframeMessage === 'function') {
+          this._modal.sendIframeMessage(iframe);
+        }
+        iframe.contentWindow.postMessage(
+          {
+            header: 'parent_start_intro',
+            intro_mode: introMode,
+            enable_guide: true
+          },
+          '*'
+        );
+      }
+    } catch (e) {
+      console.warn('無法向 iframe 發送 parent_start_intro:', e);
+    }
   }
 
   // 設置結果狀態（當有搜尋結果時調用）
@@ -3860,7 +5023,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     trigger.classList.remove('ai-pd-container__trigger--search');
     trigger.classList.remove('ai-pd-container__trigger--close');
     trigger.classList.add('ai-pd-container__trigger--result');
-    trigger.title = '查看搜尋結果';
+    trigger.title = this._t('float.viewResults');
     this._syncTooltipVisibility();
   }
 
@@ -3872,7 +5035,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     trigger.classList.remove('ai-pd-container__trigger--result');
     trigger.classList.remove('ai-pd-container__trigger--close');
     trigger.classList.add('ai-pd-container__trigger--search');
-    trigger.title = '開啟智慧選物';
+    trigger.title = this._t('float.openSmartSelection');
     this._syncTooltipVisibility();
   }
 
@@ -3890,6 +5053,16 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     try {
       // 檢查消息格式
       if (event.data && typeof event.data === 'object') {
+        // iframe 內引導開始／結束 → 同步「?」顯示
+        if (event.data.header === 'iframe_intro_tour') {
+          this._iframeIntroActive = event.data.active === true;
+          this._syncGuideHelpVisibility();
+          if (!event.data.active) {
+            this._syncTooltipVisibility();
+          }
+          return;
+        }
+
         const { type, value } = event.data;
         
         // 監聽 iframe 回傳值 type === 'result'
@@ -4020,6 +5193,29 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       tooltip.addEventListener('click', this._onTooltipClick);
       tooltip.addEventListener('keydown', this._onTooltipKeyDown);
     }
+    this.shadowRoot.querySelectorAll('.ai-pd-container__route-card').forEach((card) => {
+      card.addEventListener('click', this._onRouteCardClick);
+    });
+    const guideStart = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    if (guideStart) {
+      guideStart.addEventListener('click', this._onGuideStartClick);
+    }
+    const guideSkip = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--skip');
+    if (guideSkip) {
+      guideSkip.addEventListener('click', this._onGuideSkipClick);
+    }
+    const inlineGuideSkip = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-skip');
+    if (inlineGuideSkip) {
+      inlineGuideSkip.addEventListener('click', this._onGuideSkipClick);
+    }
+    const guideHelp = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (guideHelp) {
+      guideHelp.addEventListener('click', this._onGuideHelpClick);
+    }
+    const multiRouteReopen = this.shadowRoot.querySelector('.ai-pd-container__multi-route-reopen');
+    if (multiRouteReopen) {
+      multiRouteReopen.addEventListener('click', this._onMultiRouteReopenClick);
+    }
   }
 
   // 設置彈窗 iframe URL（統一接口）
@@ -4047,63 +5243,156 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       tooltip.removeEventListener('click', this._onTooltipClick);
       tooltip.removeEventListener('keydown', this._onTooltipKeyDown);
     }
+    this.shadowRoot.querySelectorAll('.ai-pd-container__route-card').forEach((card) => {
+      card.removeEventListener('click', this._onRouteCardClick);
+    });
+    const guideStart = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    if (guideStart) {
+      guideStart.removeEventListener('click', this._onGuideStartClick);
+    }
+    const guideSkip = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--skip');
+    if (guideSkip) {
+      guideSkip.removeEventListener('click', this._onGuideSkipClick);
+    }
+    const inlineGuideSkip = this.shadowRoot.querySelector('.ai-pd-container__multi-route-guide-skip');
+    if (inlineGuideSkip) {
+      inlineGuideSkip.removeEventListener('click', this._onGuideSkipClick);
+    }
+    const guideHelp = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (guideHelp) {
+      guideHelp.removeEventListener('click', this._onGuideHelpClick);
+    }
+    const multiRouteReopen = this.shadowRoot.querySelector('.ai-pd-container__multi-route-reopen');
+    if (multiRouteReopen) {
+      multiRouteReopen.removeEventListener('click', this._onMultiRouteReopenClick);
+    }
   }
 
   // 渲染組件
   render() {
     const positionStyles = this.getPositionStyles();
     const tooltipAlignClass = this.getTooltipAlignClass();
+    const guideAlignClass = this._getGuideCardAlignClass();
+    const position = this.getAttribute('position') || 'LeftDown';
+    const anchorAlignClass = position === 'RightDown' ? 'ai-pd-container__anchor--align-end' : '';
     const tooltipText = this._getTooltipText();
-    const tooltipAriaLabel = tooltipText ? `開啟智慧選物：${tooltipText}` : '開啟智慧選物';
-    const hideTooltip = this._tooltipDismissed || this._isTooltipDisabledByText();
+    const tooltipAriaLabel = this._getTooltipAriaLabel(tooltipText);
+    const closeTooltipLabel = escapeHtmlForTooltip(this._t('float.closeTooltip'));
+    const guideTapHere = escapeHtmlForTooltip(this._t('float.guideTapHere'));
+    const guideSkip = escapeHtmlForTooltip(this._t('float.guideSkip'));
+    const guideStart = escapeHtmlForTooltip(this._t('float.guideStart'));
+    const guideReplay = escapeHtmlForTooltip(this._t('float.guideReplay'));
+    const multiRouteReopen = escapeHtmlForTooltip(this._t('float.multiRouteReopen'));
+    const multiRouteSectionLabel = escapeHtmlForTooltip(this._t('float.multiRouteSectionLabel'));
+    const multiRouteGuideHint = escapeHtmlForTooltip(this._t('float.multiRouteGuideHint'));
+    const multiRouteGuideSkip = escapeHtmlForTooltip(this._t('float.multiRouteGuideSkip'));
+    const openSmartSelection = escapeHtmlForTooltip(this._t('float.openSmartSelection'));
+    const hideTooltip = this._tooltipDismissed || this._isTooltipDisabledByText()
+      || (this._guideActive && !this._isMultiRouteGuideStep());
+    const useMultiRoute = this._shouldUseMultiRouteTooltip();
+    const routeCardsHtml = useMultiRoute
+      ? this._getMultiRouteList().map((item) => {
+          const labelRaw = this._getRouteCardLabel(item);
+          const label = escapeHtmlForTooltip(labelRaw);
+          const routeIdRaw = String(item.route || '');
+          const routeId = escapeHtmlForTooltip(routeIdRaw);
+          const selectedId = this._getMultiRouteSelectedId();
+          const isSelected = !!(selectedId && routeIdRaw === selectedId);
+          const selectedClass = isSelected ? ' ai-pd-container__route-card--selected' : '';
+          const ariaCurrent = isSelected ? ' aria-current="true"' : '';
+          return `<button type="button" class="ai-pd-container__route-card${selectedClass}" data-route-id="${routeId}" aria-label="${label}"${ariaCurrent}><span class="ai-pd-container__route-card-text">${label}</span><span class="ai-pd-container__route-card-arrow" aria-hidden="true">›</span></button>`;
+        }).join('')
+      : '';
+    const tooltipHtml = useMultiRoute
+      ? `
+          <div class="ai-pd-container__tooltip-wrap ai-pd-container__tooltip-wrap--multi ${tooltipAlignClass}" ${hideTooltip ? 'hidden' : ''}>
+            <span class="ai-pd-container__tooltip-badge" aria-hidden="true"><img class="ai-pd-container__tooltip-badge-img" src="${FLOATING_TOOLTIP_LOGO_SRC}" alt="" /></span>
+            <div class="ai-pd-container__tooltip-panel">
+              <div class="ai-pd-container__tooltip-panel-header">
+                <button class="ai-pd-container__tooltip-close" type="button" aria-label="${closeTooltipLabel}">&times;</button>
+                <p class="ai-pd-container__tooltip-panel-title">${escapeHtmlForTooltip(tooltipText)}</p>
+              </div>
+              <div class="ai-pd-container__route-section">
+                <p class="ai-pd-container__route-section-label" hidden>${multiRouteSectionLabel}</p>
+                <div class="ai-pd-container__route-list" role="list">
+                  ${routeCardsHtml}
+                </div>
+              </div>
+              <div class="ai-pd-container__multi-route-guide-footer" hidden>
+                <p class="ai-pd-container__multi-route-guide-hint">${multiRouteGuideHint}</p>
+                <button type="button" class="ai-pd-container__multi-route-guide-skip">${multiRouteGuideSkip}</button>
+              </div>
+            </div>
+          </div>`
+      : `
+          <div class="ai-pd-container__tooltip-wrap ${tooltipAlignClass}" ${hideTooltip ? 'hidden' : ''}>
+            <span class="ai-pd-container__tooltip-badge" aria-hidden="true"><img class="ai-pd-container__tooltip-badge-img" src="${FLOATING_TOOLTIP_LOGO_SRC}" alt="" /></span>
+            <div class="ai-pd-container__tooltip" role="button" tabindex="0">
+              <button class="ai-pd-container__tooltip-close" type="button" aria-label="${closeTooltipLabel}">&times;</button>
+              <div class="ai-pd-container__tooltip-typewriter">
+                <span class="ai-pd-container__tooltip-text"></span>
+              </div>
+            </div>
+          </div>`;
     
     this.shadowRoot.innerHTML = `
       <style>${FLOATING_BTN_STYLE}</style>
       <div class="ai-pd-container">
-        <div class="ai-pd-container__anchor" style="
+        <div class="ai-pd-container__guide-mask" hidden></div>
+        <div class="ai-pd-container__anchor ${anchorAlignClass}" style="
           bottom: ${positionStyles.bottom};
           right: ${positionStyles.right};
           left: ${positionStyles.left};
           top: ${positionStyles.top};
           transform: ${positionStyles.transform};
         ">
-          <div class="ai-pd-container__tooltip-wrap ${tooltipAlignClass}" ${hideTooltip ? 'hidden' : ''}>
-            <span class="ai-pd-container__tooltip-badge" aria-hidden="true"><img class="ai-pd-container__tooltip-badge-img" src="${FLOATING_TOOLTIP_LOGO_SRC}" alt="" /></span>
-            <div class="ai-pd-container__tooltip" role="button" tabindex="0">
-              <button class="ai-pd-container__tooltip-close" type="button" aria-label="關閉提示">&times;</button>
-              <div class="ai-pd-container__tooltip-typewriter">
-                <span class="ai-pd-container__tooltip-text"></span>
-              </div>
+          <div class="ai-pd-container__guide-card ${guideAlignClass}" hidden>
+            <p class="ai-pd-container__guide-card-text">${guideTapHere}</p>
+            <div class="ai-pd-container__guide-card-actions">
+              <button class="ai-pd-container__guide-btn ai-pd-container__guide-btn--skip" type="button">${guideSkip}</button>
+              <button class="ai-pd-container__guide-btn ai-pd-container__guide-btn--start" type="button">${guideStart}</button>
             </div>
           </div>
-          <button class="ai-pd-container__trigger ai-pd-container__trigger--search" type="button" title="開啟智慧選物">
-            <div class="ai-pd-container__icon"></div>
-            <img class="ai-pd-container__icon--alert" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMTBDMTQuNDc3MiAxMCAxMCA1LjUyMjggMTAgLTQuMzcxMTRlLTA3QzEwIDUuNTIyOCA1LjUyMjggMTAgMy4zNzc1OGUtMDYgMTBDNS41MjI4IDEwIDEwIDE0LjQ3NzIgMTAgMjBDMTAgMTQuNDc3MiAxNC40NzcyIDEwIDIwIDEwWiIgZmlsbD0iI0Y5RkY5NCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjc1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4K" alt="alert" />
-          </button>
+          ${tooltipHtml}
+          <div class="ai-pd-container__trigger-wrap${useMultiRoute ? ' ai-pd-container__trigger-wrap--multi-route' : ''}">
+            <button class="ai-pd-container__trigger ai-pd-container__trigger--search" type="button" title="${openSmartSelection}">
+              <div class="ai-pd-container__icon"></div>
+              <img class="ai-pd-container__icon--alert" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMTBDMTQuNDc3MiAxMCAxMCA1LjUyMjggMTAgLTQuMzcxMTRlLTA3QzEwIDUuNTIyOCA1LjUyMjggMTAgMy4zNzc1OGUtMDYgMTBDNS41MjI4IDEwIDEwIDE0LjQ3NzIgMTAgMjBDMTAgMTQuNDc3MiAxNC40NzcyIDEwIDIwIDEwWiIgZmlsbD0iI0Y5RkY5NCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjc1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4K" alt="alert" />
+            </button>
+            <button class="ai-pd-container__guide-help" type="button" title="${guideReplay}" aria-label="${guideReplay}" hidden>?</button>
+            <button class="ai-pd-container__multi-route-reopen" type="button" title="${multiRouteReopen}" aria-label="${multiRouteReopen}" hidden>${MULTI_ROUTE_REOPEN_ICON}</button>
+          </div>
         </div>
       </div>
     `;
-    const tooltipEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
-    if (tooltipEl) {
-      tooltipEl.setAttribute('aria-label', tooltipAriaLabel);
+    if (!useMultiRoute) {
+      const tooltipEl = this.shadowRoot.querySelector('.ai-pd-container__tooltip');
+      if (tooltipEl) {
+        tooltipEl.setAttribute('aria-label', tooltipAriaLabel);
+      }
     }
   }
 
   _onButtonClick() {
     if (!this._modal) return;
+
+    // 引導進行中：點浮動鈕直接完成引導並開啟彈窗（多動線不再進入第二步浮動鈕引導）
+    if (this._guideActive) {
+      this._completeGuideAndOpen();
+      return;
+    }
     
     const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
 
-    // 點擊主按鈕後，本次瀏覽不再顯示打字機對話框
-    this._dismissTooltip();
-    
     if (this._modal.visible) {
       this._modal.hide();
-      // 彈窗關閉時，移除 modal-open 類別，z-index 回復
+      // 關閉 modal 不永久關閉 tooltip；關閉後由 hide 事件恢復顯示
       if (anchor) {
         anchor.classList.remove('ai-pd-container__anchor--modal-open');
       }
     } else {
+      // 開啟 modal 才永久關閉本次瀏覽的打字機對話框
+      this._dismissTooltip();
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
       const isTabletOrLarger = window.innerWidth >= 768;
       
@@ -4474,6 +5763,16 @@ function appendIframeGaSuffix(url, ga) {
 }
 
 /**
+ * 正規化 iframe UI 語系（對齊 ts-iframe-no-media NoMediaI18n）
+ * @param {string} [lang]
+ * @returns {null|'zh-TW'|'en'}
+ */
+function normalizeIframeLang(lang) {
+    if (lang == null || String(lang).trim() === '') return null;
+    return getParentUiLang(lang);
+}
+
+/**
  * 從 options.ga 解析 Measurement ID（支援 'G-XXXX'、'?ga=G-XXXX'、'ga=G-XXXX'）
  * @param {string} ga
  * @returns {string}
@@ -4581,6 +5880,7 @@ class InfMarketingComponentManager {
     constructor() {
         this.config = null;
         this.route = null;
+        this.availableRoutes = [];
         this.currentComponent = null;
         this.modal = null;
         this.isInitialized = false;
@@ -4615,6 +5915,7 @@ class InfMarketingComponentManager {
             // 如果沒有提供 url，使用當前頁面網址
             const targetUrl = url || window.location.href;
             const data = await this.fetchMarketingData(brand, targetUrl);
+            this.availableRoutes = Array.isArray(data?.route) ? data.route : [];
             const routeId = (this.iframeParams && this.iframeParams.route_id) ? String(this.iframeParams.route_id).trim() : '';
 
             // 未指定 route_id 時，仍需 API 回傳的動線
@@ -4803,6 +6104,94 @@ class InfMarketingComponentManager {
         }
     }
 
+    /**
+     * 依動線物件取得 iframe URL
+     * @param {Object} route - 動線物件
+     * @returns {string}
+     */
+    getRouteIframeUrl(route) {
+        if (!route) return '';
+        const baseIframeUrl = route.RouteDisplayMode === 'media' ?
+            'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
+            route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v2':
+            'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
+        let url = appendIframeGaSuffix(baseIframeUrl, this.iframeParams?.ga || '');
+        if (route.Route) {
+            const ridParam = 'rid=' + encodeURIComponent(route.Route);
+            url += (url.indexOf('?') >= 0 ? '&' : '?') + ridParam;
+        }
+        return url;
+    }
+
+    /**
+     * 組裝傳入 iframe 的設定物件
+     * @returns {Object}
+     */
+    getIframeConfigPayload() {
+        var visitorIds = (typeof readVisitorIdsFromLocalStorage === 'function')
+            ? readVisitorIdsFromLocalStorage()
+            : { MRID: '', GVID: '', LGVID: '' };
+        var payload = {
+            id: this.route.Route,
+            brand: this.brand,
+            header: 'from_preview',
+            MRID: this.iframeParams?.MRID || visitorIds.MRID || '',
+            GVID: this.iframeParams?.GVID || visitorIds.GVID || '',
+            LGVID: this.iframeParams?.LGVID || visitorIds.LGVID || '',
+            show_origin_price: this.iframeParams?.show_origin_price === true,
+            use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true,
+            intro_mode: (this.iframeParams?.intro_mode === 'v1' || this.iframeParams?.intro_mode === 'v2')
+                ? this.iframeParams.intro_mode
+                : null,
+            enable_guide: this.iframeParams?.enable_guide === true
+        };
+        if (Object.prototype.hasOwnProperty.call(this.iframeParams || {}, 'lang')) {
+            var normalizedLang = normalizeIframeLang(this.iframeParams.lang);
+            if (normalizedLang) payload.lang = normalizedLang;
+        }
+        return payload;
+    }
+
+    /**
+     * 切換動線並更新 modal／浮動鈕
+     * @param {string} routeId - 動線 ID
+     * @returns {Promise<boolean>}
+     */
+    async switchRoute(routeId) {
+        if (!routeId || !this.brand) return false;
+        try {
+            const routeProduct = await this.fetchRouteProduct(this.brand, routeId);
+            if (!routeProduct?.Product) {
+                console.warn('switchRoute: 未取得有效的 Product 資料');
+                return false;
+            }
+            this.route = routeProduct.Product;
+            const iframeUrl = this.getRouteIframeUrl(this.route);
+
+            if (this.currentComponent) {
+                this.currentComponent.setAttribute('iframe-id', this.route.Route);
+                this.currentComponent.setAttribute('multi-route-selected', this.route.Route || '');
+                if (typeof this.currentComponent.setModalIframeUrl === 'function') {
+                    this.currentComponent.setModalIframeUrl(iframeUrl);
+                }
+            }
+
+            if (this.modal) {
+                if (this.modal.setIframeConfig) {
+                    this.modal.setIframeConfig(this.getIframeConfigPayload());
+                }
+                if (this.modal.setIframeUrl) {
+                    this.modal.setIframeUrl(iframeUrl);
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('switchRoute 失敗:', error);
+            return false;
+        }
+    }
+
     async loadComponent() {
         const bannerType = this.config.BannerType;
         let componentTagName = '';
@@ -4886,11 +6275,17 @@ class InfMarketingComponentManager {
         }));
     }
 
+    _getUiLang() {
+        return getParentUiLang(this.iframeParams && this.iframeParams.lang);
+    }
+
     configurePopupBanner() {
+        const lang = this._getUiLang();
+        this.currentComponent.setAttribute('ui-lang', lang);
         this.currentComponent.setAttribute('position', this.config.Location || 'RightDown');
-        this.currentComponent.setAttribute('title', this.config.Title || '精選購物之旅');
-        this.currentComponent.setAttribute('description', this.config.Description || '找到您的個人化專屬商品');
-        this.currentComponent.setAttribute('button-text', this.config.CTA_text || '立即開始');
+        this.currentComponent.setAttribute('title', this.config.Title || parentUiT(lang, 'banner.defaultTitle'));
+        this.currentComponent.setAttribute('description', this.config.Description || parentUiT(lang, 'banner.defaultDescription'));
+        this.currentComponent.setAttribute('button-text', this.config.CTA_text || parentUiT(lang, 'banner.defaultCta'));
         this.currentComponent.setAttribute('button-color', this.config.CTA_background || '#000000FF');
         this.currentComponent.setAttribute('button-text-color', this.config.CTA_color || '#FFFFFFFF');
         this.currentComponent.setAttribute('today-display-mode', this.config.TodayDisplayMode !== false ? 'true' : 'false');
@@ -4915,6 +6310,8 @@ class InfMarketingComponentManager {
     }
 
     async configureSquareCardBanner() {
+        const lang = this._getUiLang();
+        this.currentComponent.setAttribute('ui-lang', lang);
         this.currentComponent.setAttribute('position', this.config.Location || 'RightDown');
         this.currentComponent.setAttribute('width', '300px');
         this.currentComponent.setAttribute('height', '300px');
@@ -4947,15 +6344,18 @@ class InfMarketingComponentManager {
                 this.currentComponent.setImages(this.config.CardOptions);
             }
         } else {
+            const smartTitle = parentUiT(lang, 'card.smartSelection');
+            const promoTitle = parentUiT(lang, 'card.officialPromo');
             const imageData = [
                 {
-                    image: 'https://via.placeholder.com/300x300/667eea/ffffff?text=智慧選物',
-                    Title: '智慧選物',
+                    image: 'https://via.placeholder.com/300x300/667eea/ffffff?text=' + encodeURIComponent(smartTitle),
+                    Title: smartTitle,
+                    isSmartSelection: true,
                     url: null
                 },
                 {
-                    image: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=官網特惠',
-                    Title: '官網特惠',
+                    image: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=' + encodeURIComponent(promoTitle),
+                    Title: promoTitle,
                     url: ''
                 }
             ];
@@ -4966,6 +6366,7 @@ class InfMarketingComponentManager {
     }
 
     configureFloatingButton() {
+        this.currentComponent.setAttribute('ui-lang', this._getUiLang());
         this.currentComponent.setAttribute('position', this.config.Location || 'LeftDown');
         
         // 設置時間有效性驗證
@@ -4992,16 +6393,53 @@ class InfMarketingComponentManager {
                 this.iframeParams.float_tooltip_text == null ? '' : String(this.iframeParams.float_tooltip_text)
             );
         }
+        if (this.iframeParams?.enable_guide === true) {
+            this.currentComponent.setAttribute('enable-guide', 'true');
+        }
+        if (this.iframeParams?.show_float_guide === true) {
+            this.currentComponent.setAttribute('show-float-guide', 'true');
+        }
+        if (this.iframeParams?.enable_multi_route === true && this.availableRoutes.length > 0) {
+            this.currentComponent.setAttribute('enable-multi-route', 'true');
+            const specifiedRouteId = (this.iframeParams?.route_id)
+                ? String(this.iframeParams.route_id).trim()
+                : '';
+            const defaultAiRouteId = specifiedRouteId
+                || (this.route && this.route.Route ? String(this.route.Route) : '')
+                || (this.availableRoutes[0] && this.availableRoutes[0].Route
+                    ? String(this.availableRoutes[0].Route)
+                    : '');
+
+            const apiRoutes = this.availableRoutes
+                .map((routeItem) => ({
+                    route: routeItem.Route,
+                    label: routeItem.Name || routeItem.Description || routeItem.Route || ''
+                }))
+                .filter((item) => item.route && String(item.route) !== defaultAiRouteId);
+
+            const multiRouteList = [];
+            if (defaultAiRouteId) {
+                multiRouteList.push({
+                    route: defaultAiRouteId,
+                    isAiRoute: true
+                });
+            }
+            multiRouteList.push(...apiRoutes);
+
+            this.currentComponent.setAttribute('multi-route-list', JSON.stringify(multiRouteList));
+            const selectedRouteId = (this.route && this.route.Route)
+                ? String(this.route.Route)
+                : defaultAiRouteId;
+            if (selectedRouteId) {
+                this.currentComponent.setAttribute('multi-route-selected', selectedRouteId);
+            }
+        }
     }
 
     async setupModalIframe() {
         if (!this.route) return;
 
-        const baseIframeUrl = this.route.RouteDisplayMode === 'media' ?
-            'https://ts-iframe-v2.vercel.app/iframe_container_module.html':
-            this.route.RouteDisplayMode === 'nomedia-v2' ?'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v2':
-            'https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1';
-        const iframeUrl = appendIframeGaSuffix(baseIframeUrl, this.iframeParams?.ga || '');
+        const iframeUrl = this.getRouteIframeUrl(this.route);
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
@@ -5018,24 +6456,10 @@ class InfMarketingComponentManager {
             await this.waitForElementInDOM(modal);
         }
 
+        modal.setAttribute('ui-lang', this._getUiLang());
+
         if (modal.setIframeConfig) {
-            // options 優先；未傳則回退 localStorage 的 GVID / LGVID / MRID
-            var visitorIds = (typeof readVisitorIdsFromLocalStorage === 'function')
-                ? readVisitorIdsFromLocalStorage()
-                : { MRID: '', GVID: '', LGVID: '' };
-            modal.setIframeConfig({
-                id: this.route.Route,
-                brand: this.brand,
-                header: 'from_preview',
-                MRID: this.iframeParams?.MRID || visitorIds.MRID || '',
-                GVID: this.iframeParams?.GVID || visitorIds.GVID || '',
-                LGVID: this.iframeParams?.LGVID || visitorIds.LGVID || '',
-                show_origin_price: this.iframeParams?.show_origin_price === true,
-                use_route_linked_tags: this.iframeParams?.use_route_linked_tags === true,
-                intro_mode: (this.iframeParams?.intro_mode === 'v1' || this.iframeParams?.intro_mode === 'v2')
-                    ? this.iframeParams.intro_mode
-                    : null
-            });
+            modal.setIframeConfig(this.getIframeConfigPayload());
         }
 
         await this.preloadIframe(modal, iframeUrl);
@@ -5222,6 +6646,10 @@ window.infMarketingManager = new InfMarketingComponentManager();
  * @param {boolean} [options.use_route_linked_tags=false] - 是否開啟 RouteLinkedTags 過濾（可選，預設 false；省略或 false 則下一題仍顯示全部選項）
  * @param {null|'v1'|'v2'} [options.intro_mode=null] - 介紹模式（可選；省略或 null；合法值 'v1' / 'v2'）
  * @param {string} [options.float_tooltip_text] - 浮動鈕上方對話框文案（可選；省略用預設「來試試 infFITS 個人化推薦購物！」；空字串則不顯示對話框）
+ * @param {boolean} [options.enable_guide=false] - 是否啟用遮罩引導（可選；預設 false；true 時才顯示父頁引導與 iframe 內教學）
+ * @param {boolean} [options.show_float_guide=false] - 是否強制顯示浮動鈕遮罩引導（可選；需 enable_guide；true 時忽略 localStorage）
+ * @param {boolean} [options.enable_multi_route=false] - 是否啟用多動線選擇（可選；預設 false；true 時浮動鈕對話框下方列出 API route 選項）
+ * @param {'zh-TW'|'en'} [options.lang] - iframe UI 語系（可選；省略則 iframe 預設 zh-TW；支援 'zh-TW' / 'en' 及常見別名）
  */
 window.initInfMarketing = (brand, options) => {
     // 處理參數
@@ -5246,8 +6674,15 @@ window.initInfMarketing = (brand, options) => {
         route_id: options.route_id || '',
         show_origin_price: options.show_origin_price === true,
         use_route_linked_tags: options.use_route_linked_tags === true,
-        intro_mode: (options.intro_mode === 'v1' || options.intro_mode === 'v2') ? options.intro_mode : null
+        intro_mode: (options.intro_mode === 'v1' || options.intro_mode === 'v2') ? options.intro_mode : null,
+        enable_guide: options.enable_guide === true,
+        show_float_guide: options.show_float_guide === true,
+        enable_multi_route: options.enable_multi_route === true
     };
+    if (Object.prototype.hasOwnProperty.call(options, 'lang')) {
+        var normalizedInitLang = normalizeIframeLang(options.lang);
+        if (normalizedInitLang) iframeParams.lang = normalizedInitLang;
+    }
     if (Object.prototype.hasOwnProperty.call(options, 'float_tooltip_text')) {
         iframeParams.float_tooltip_text = options.float_tooltip_text == null
             ? ''
@@ -5317,7 +6752,7 @@ window.initInfMarketing = (brand, options) => {
         window.infMarketingManager.init(brand, url, config, iframeParams);
 
         // 設置 iframe 參數（如果有提供）
-        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID || iframeParams.show_origin_price || iframeParams.use_route_linked_tags || iframeParams.intro_mode) {
+        if (iframeParams.MRID || iframeParams.GVID || iframeParams.LGVID || iframeParams.show_origin_price || iframeParams.use_route_linked_tags || iframeParams.intro_mode || iframeParams.enable_guide || iframeParams.lang) {
             // 等待組件載入完成後設置參數
             const setupIframeParams = () => {
                 const modal = document.querySelector('inf-marketing-modal');
@@ -5333,6 +6768,12 @@ window.initInfMarketing = (brand, options) => {
                     }
                     if (typeof modal.setIframeIntroMode === 'function') {
                         modal.setIframeIntroMode(iframeParams.intro_mode);
+                    }
+                    if (iframeParams.lang) {
+                        modal.setAttribute('ui-lang', getParentUiLang(iframeParams.lang));
+                        if (typeof modal.setIframeLang === 'function') {
+                            modal.setIframeLang(iframeParams.lang);
+                        }
                     }
                     
                     // 立即發送訊息到 iframe（如果 iframe 已載入）

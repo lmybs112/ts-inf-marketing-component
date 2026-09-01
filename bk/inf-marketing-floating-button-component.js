@@ -2,6 +2,7 @@
 // 封裝浮動按鈕，點擊時開啟/關閉 inf-marketing-modal 彈窗
 
 const FLOATING_TOOLTIP_TEXT = '來試試 infFITS 個人化推薦購物！';
+const FLOATING_GUIDE_STORAGE_KEY = 'inf-marketing-float-guide-dismissed';
 const FLOATING_TOOLTIP_LOGO_SRC = 'data:image/png;base64,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';
 
 const FLOATING_BTN_STYLE = `
@@ -23,6 +24,115 @@ const FLOATING_BTN_STYLE = `
     width: 70px;
     height: 70px;
   }
+}
+.ai-pd-container__anchor--guide-active {
+  z-index: 1999999991;
+}
+.ai-pd-container__guide-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1999999990;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+}
+.ai-pd-container__guide-mask[hidden] {
+  display: none !important;
+}
+.ai-pd-container__guide-card {
+  position: absolute;
+  bottom: calc(100% + 16px);
+  z-index: 3;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  min-width: 200px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  color: #1e1e19;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+.ai-pd-container__guide-card[hidden] {
+  display: none !important;
+}
+.ai-pd-container__guide-card--align-end {
+  right: 0;
+  left: auto;
+}
+.ai-pd-container__guide-card--align-start {
+  left: 0;
+  right: auto;
+}
+.ai-pd-container__guide-card--align-center {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+.ai-pd-container__guide-card-text {
+  margin: 0 0 12px;
+}
+.ai-pd-container__guide-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.ai-pd-container__guide-btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+.ai-pd-container__guide-btn--skip {
+  background: transparent;
+  color: #6b6b63;
+}
+.ai-pd-container__guide-btn--start {
+  background: #1e1e19;
+  color: #ffffff;
+}
+.ai-pd-container__guide-help {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: auto;
+  z-index: 4;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  color: #1e1e19;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.ai-pd-container__guide-help[hidden] {
+  display: none !important;
+}
+/* 引導進行中一律隱藏「再看一次」，避免與遮罩搶戲 */
+.ai-pd-container__anchor--guide-active .ai-pd-container__guide-help {
+  display: none !important;
+}
+.ai-pd-container__trigger--guide-spotlight {
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px rgba(255, 255, 255, 0.35),
+    0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 .ai-pd-container__tooltip-wrap {
@@ -331,15 +441,20 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._onTooltipCloseClick = this._onTooltipCloseClick.bind(this);
     this._onTooltipClick = this._onTooltipClick.bind(this);
     this._onTooltipKeyDown = this._onTooltipKeyDown.bind(this);
+    this._onGuideStartClick = this._onGuideStartClick.bind(this);
+    this._onGuideSkipClick = this._onGuideSkipClick.bind(this);
+    this._onGuideHelpClick = this._onGuideHelpClick.bind(this);
     this._isModalOpen = false; // 追蹤彈窗狀態
     this._hasResult = false; // 追蹤是否有搜尋結果
     this._tooltipDismissed = false; // 本次瀏覽是否已關閉打字機對話框
     this._typewriterTimer = null; // 打字機計時器
     this._typewriterCompleted = false; // 打字機是否已跑完一次
+    this._guideActive = false;
+    this._iframeIntroActive = false;
   }
 
   static get observedAttributes() {
-    return ['position', 'float-tooltip-text'];
+    return ['position', 'float-tooltip-text', 'enable-guide', 'show-float-guide'];
   }
 
   // 未設屬性 → 預設文案；空字串 → 不顯示對話框；其餘 → 自訂文案
@@ -367,6 +482,10 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
         }
         this._syncTooltipVisibility();
       }
+    } else if (oldValue !== newValue && (name === 'enable-guide' || name === 'show-float-guide')) {
+      if (this.shadowRoot && this.shadowRoot.querySelector('.ai-pd-container')) {
+        this._initFloatGuide();
+      }
     }
   }
 
@@ -389,6 +508,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 監聽 iframe 消息
     this._setupIframeMessageListener();
     this._syncTooltipVisibility();
+    this._initFloatGuide();
   }
 
   disconnectedCallback() {
@@ -410,7 +530,10 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 監聽彈窗隱藏事件
     this._modal.addEventListener('inf-marketing-modal:hide', () => {
       this._isModalOpen = false;
+      this._iframeIntroActive = false;
       this._updateButtonState();
+      this._syncGuideHelpVisibility();
+      this._syncTooltipVisibility();
     });
   }
 
@@ -580,17 +703,25 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     typeNext();
   }
 
-  // 僅在搜尋狀態且未關閉時顯示對話框
+  // modal 關閉後，搜尋或結果狀態且未手動關閉時顯示對話框
   _syncTooltipVisibility() {
     const tooltip = this.shadowRoot.querySelector('.ai-pd-container__tooltip-wrap');
     const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
     if (!tooltip || !trigger) return;
 
-    const isSearchState = trigger.classList.contains('ai-pd-container__trigger--search')
-      && !trigger.classList.contains('ai-pd-container__trigger--close')
-      && !trigger.classList.contains('ai-pd-container__trigger--result');
+    if (
+      this._guideActive
+      || this._isModalOpen
+      || (this._modal && this._modal.visible)
+    ) {
+      tooltip.hidden = true;
+      this._stopTypewriter();
+      return;
+    }
 
-    if (!this._tooltipDismissed && isSearchState && !this._isTooltipDisabledByText()) {
+    const isInviteState = !trigger.classList.contains('ai-pd-container__trigger--close');
+
+    if (!this._tooltipDismissed && isInviteState && !this._isTooltipDisabledByText()) {
       const needsStart = tooltip.hidden || (!this._typewriterTimer && !this._typewriterCompleted);
       tooltip.hidden = false;
       if (needsStart) {
@@ -606,6 +737,192 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     } else {
       tooltip.hidden = true;
       this._stopTypewriter();
+    }
+  }
+
+  _isGuideDismissedStored() {
+    try {
+      return localStorage.getItem(FLOATING_GUIDE_STORAGE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  _markGuideDismissedStored() {
+    try {
+      localStorage.setItem(FLOATING_GUIDE_STORAGE_KEY, '1');
+    } catch (e) {}
+  }
+
+  _clearGuideDismissedStored() {
+    try {
+      localStorage.removeItem(FLOATING_GUIDE_STORAGE_KEY);
+    } catch (e) {}
+  }
+
+  _isGuideFeatureEnabled() {
+    return this.getAttribute('enable-guide') === 'true';
+  }
+
+  _shouldForceShowGuide() {
+    return this.getAttribute('show-float-guide') === 'true';
+  }
+
+  _initFloatGuide() {
+    if (!this._isGuideFeatureEnabled()) {
+      this._hideGuide();
+      this._syncGuideHelpVisibility();
+      return;
+    }
+    if (this._shouldForceShowGuide() || !this._isGuideDismissedStored()) {
+      this._showGuide();
+    } else {
+      this._hideGuide();
+      this._syncGuideHelpVisibility();
+    }
+  }
+
+  _getGuideCardAlignClass() {
+    const position = this.getAttribute('position') || 'LeftDown';
+    if (position === 'RightDown') return 'ai-pd-container__guide-card--align-end';
+    if (position === 'LeftDown') return 'ai-pd-container__guide-card--align-start';
+    return 'ai-pd-container__guide-card--align-center';
+  }
+
+  _showGuide() {
+    const mask = this.shadowRoot.querySelector('.ai-pd-container__guide-mask');
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    const help = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (!mask || !card || !anchor || !trigger) return;
+
+    this._guideActive = true;
+    mask.hidden = false;
+    card.hidden = false;
+    card.classList.remove(
+      'ai-pd-container__guide-card--align-start',
+      'ai-pd-container__guide-card--align-end',
+      'ai-pd-container__guide-card--align-center'
+    );
+    card.classList.add(this._getGuideCardAlignClass());
+    anchor.classList.add('ai-pd-container__anchor--guide-active');
+    trigger.classList.add('ai-pd-container__trigger--guide-spotlight');
+    if (help) help.hidden = true;
+    this._syncTooltipVisibility();
+    this._syncGuideHelpVisibility();
+  }
+
+  _hideGuide() {
+    const mask = this.shadowRoot.querySelector('.ai-pd-container__guide-mask');
+    const card = this.shadowRoot.querySelector('.ai-pd-container__guide-card');
+    const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
+    const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
+    if (mask) mask.hidden = true;
+    if (card) card.hidden = true;
+    if (anchor) anchor.classList.remove('ai-pd-container__anchor--guide-active');
+    if (trigger) trigger.classList.remove('ai-pd-container__trigger--guide-spotlight');
+    this._guideActive = false;
+    // 引導結束後恢復 float_tooltip（若尚未被使用者手動關閉）
+    this._syncTooltipVisibility();
+    this._syncGuideHelpVisibility();
+  }
+
+  _syncGuideHelpVisibility() {
+    const help = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (!help) return;
+    help.hidden = !this._isGuideFeatureEnabled()
+      || this._guideActive
+      || this._iframeIntroActive
+      || !this._isGuideDismissedStored();
+  }
+
+  _onGuideStartClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this._completeGuideAndOpen();
+  }
+
+  _onGuideSkipClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this._markGuideDismissedStored();
+    this._hideGuide();
+  }
+
+  _onGuideHelpClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this._modal && this._modal.visible) {
+      this._modal.hide();
+    }
+    this._clearGuideDismissedStored();
+    this._showGuide();
+  }
+
+  _completeGuideAndOpen() {
+    this._markGuideDismissedStored();
+    this._hideGuide();
+    this._openSmartSelectionFromGuide();
+  }
+
+  _openSmartSelectionFromGuide() {
+    if (!this._modal) return;
+    // 引導開啟不永久關閉對話框；關掉 modal 後仍可再顯示 float_tooltip
+    if (this._modal.visible) {
+      this._notifyIframeStartIntro();
+      return;
+    }
+
+    const isTabletOrLarger = window.innerWidth >= 768;
+    if (isTabletOrLarger) {
+      const position = this.getAttribute('position') || 'LeftDown';
+      if (position === 'RightDown') {
+        this._configureModalForRightDown();
+      } else if (position === 'LeftDown') {
+        this._configureModalForLeftDown();
+      }
+    } else {
+      this._resetModalToCenter();
+    }
+
+    if (this.modalIframeUrl && this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl(this.modalIframeUrl);
+    } else if (this._modal.setIframeUrl && typeof this._modal.setIframeUrl === 'function') {
+      this._modal.setIframeUrl('https://ts-iframe-no-media-git-feature-ve-1140cc-meis-projects-cf7f7626.vercel.app/iframe_container_module.html?v=v1');
+    }
+
+    this._modal.show();
+    this._notifyIframeStartIntro();
+  }
+
+  _notifyIframeStartIntro() {
+    try {
+      if (!this._modal || !this._isGuideFeatureEnabled()) return;
+      this._iframeIntroActive = true;
+      this._syncGuideHelpVisibility();
+      const introMode = (this._modal.iframeConfig &&
+        (this._modal.iframeConfig.intro_mode === 'v1' || this._modal.iframeConfig.intro_mode === 'v2'))
+        ? this._modal.iframeConfig.intro_mode
+        : null;
+      const iframe = this._modal.shadowRoot
+        && (this._modal.shadowRoot.querySelector('#iframe-container iframe')
+          || this._modal.shadowRoot.querySelector('#iframe-container-content'));
+      if (iframe && iframe.contentWindow) {
+        if (typeof this._modal.sendIframeMessage === 'function') {
+          this._modal.sendIframeMessage(iframe);
+        }
+        iframe.contentWindow.postMessage(
+          {
+            header: 'parent_start_intro',
+            intro_mode: introMode,
+            enable_guide: true
+          },
+          '*'
+        );
+      }
+    } catch (e) {
+      console.warn('無法向 iframe 發送 parent_start_intro:', e);
     }
   }
 
@@ -645,22 +962,26 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   // 處理 iframe 消息
   _handleIframeMessage(event) {
     try {
-      // 檢查消息格式
       if (event.data && typeof event.data === 'object') {
+        if (event.data.header === 'iframe_intro_tour') {
+          this._iframeIntroActive = event.data.active === true;
+          this._syncGuideHelpVisibility();
+          if (!event.data.active) {
+            this._syncTooltipVisibility();
+          }
+          return;
+        }
+
         const { type, value } = event.data;
         
-        // 監聽 iframe 回傳值 type === 'result'
         if (type === 'result') {
           if (value) {
-            // 有搜尋結果時，記錄狀態並在彈窗關閉時顯示結果狀態
             this._hasResult = true;
             const trigger = this.shadowRoot.querySelector('.ai-pd-container__trigger');
             if (trigger && trigger.classList.contains('ai-pd-container__trigger--search')) {
-              // 只有在搜尋狀態（彈窗關閉）時才切換到結果狀態
               this.setResultState();
             }
           } else {
-            // 沒有搜尋結果時，清除結果狀態並重置為搜尋狀態
             this._hasResult = false;
             this.resetToSearchState();
           }
@@ -773,6 +1094,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       tooltip.addEventListener('click', this._onTooltipClick);
       tooltip.addEventListener('keydown', this._onTooltipKeyDown);
     }
+    const guideStart = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    if (guideStart) guideStart.addEventListener('click', this._onGuideStartClick);
+    const guideSkip = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--skip');
+    if (guideSkip) guideSkip.addEventListener('click', this._onGuideSkipClick);
+    const guideHelp = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (guideHelp) guideHelp.addEventListener('click', this._onGuideHelpClick);
   }
 
   // 設置彈窗 iframe URL（統一接口）
@@ -800,19 +1127,27 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       tooltip.removeEventListener('click', this._onTooltipClick);
       tooltip.removeEventListener('keydown', this._onTooltipKeyDown);
     }
+    const guideStart = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--start');
+    if (guideStart) guideStart.removeEventListener('click', this._onGuideStartClick);
+    const guideSkip = this.shadowRoot.querySelector('.ai-pd-container__guide-btn--skip');
+    if (guideSkip) guideSkip.removeEventListener('click', this._onGuideSkipClick);
+    const guideHelp = this.shadowRoot.querySelector('.ai-pd-container__guide-help');
+    if (guideHelp) guideHelp.removeEventListener('click', this._onGuideHelpClick);
   }
 
   // 渲染組件
   render() {
     const positionStyles = this.getPositionStyles();
     const tooltipAlignClass = this.getTooltipAlignClass();
+    const guideAlignClass = this._getGuideCardAlignClass();
     const tooltipText = this._getTooltipText();
     const tooltipAriaLabel = tooltipText ? `開啟智慧選物：${tooltipText}` : '開啟智慧選物';
-    const hideTooltip = this._tooltipDismissed || this._isTooltipDisabledByText();
+    const hideTooltip = this._tooltipDismissed || this._isTooltipDisabledByText() || this._guideActive;
     
     this.shadowRoot.innerHTML = `
       <style>${FLOATING_BTN_STYLE}</style>
       <div class="ai-pd-container">
+        <div class="ai-pd-container__guide-mask" hidden></div>
         <div class="ai-pd-container__anchor" style="
           bottom: ${positionStyles.bottom};
           right: ${positionStyles.right};
@@ -820,6 +1155,13 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           top: ${positionStyles.top};
           transform: ${positionStyles.transform};
         ">
+          <div class="ai-pd-container__guide-card ${guideAlignClass}" hidden>
+            <p class="ai-pd-container__guide-card-text">點這裡開啟智慧選物</p>
+            <div class="ai-pd-container__guide-card-actions">
+              <button class="ai-pd-container__guide-btn ai-pd-container__guide-btn--skip" type="button">略過</button>
+              <button class="ai-pd-container__guide-btn ai-pd-container__guide-btn--start" type="button">開始</button>
+            </div>
+          </div>
           <div class="ai-pd-container__tooltip-wrap ${tooltipAlignClass}" ${hideTooltip ? 'hidden' : ''}>
             <span class="ai-pd-container__tooltip-badge" aria-hidden="true"><img class="ai-pd-container__tooltip-badge-img" src="${FLOATING_TOOLTIP_LOGO_SRC}" alt="" /></span>
             <div class="ai-pd-container__tooltip" role="button" tabindex="0">
@@ -829,6 +1171,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
               </div>
             </div>
           </div>
+          <button class="ai-pd-container__guide-help" type="button" title="再看一次教學" aria-label="再看一次教學" hidden>?</button>
           <button class="ai-pd-container__trigger ai-pd-container__trigger--search" type="button" title="開啟智慧選物">
             <div class="ai-pd-container__icon"></div>
             <img class="ai-pd-container__icon--alert" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMTBDMTQuNDc3MiAxMCAxMCA1LjUyMjggMTAgLTQuMzcxMTRlLTA3QzEwIDUuNTIyOCA1LjUyMjggMTAgMy4zNzc1OGUtMDYgMTBDNS41MjI4IDEwIDEwIDE0LjQ3NzIgMTAgMjBDMTAgMTQuNDc3MiAxNC40NzcyIDEwIDIwIDEwWiIgZmlsbD0iI0Y5RkY5NCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyLjc1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4K" alt="alert" />
@@ -845,12 +1188,15 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   _onButtonClick() {
     if (!this._modal) return;
 
-    // 點擊主按鈕後，本次瀏覽不再顯示打字機對話框
-    this._dismissTooltip();
-    
+    if (this._guideActive) {
+      this._completeGuideAndOpen();
+      return;
+    }
+
     if (this._modal.visible) {
       this._modal.hide();
     } else {
+      this._dismissTooltip();
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
       const isTabletOrLarger = window.innerWidth >= 768;
       
