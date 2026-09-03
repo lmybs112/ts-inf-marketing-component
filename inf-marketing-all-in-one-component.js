@@ -53,7 +53,6 @@ const PARENT_UI_MESSAGES = {
     'modal.loadingHint': '提示：如果看到此訊息，表示彈窗功能正常，但尚未設置 iframe URL。',
     'modal.loadingMissingUrl': '請聯繫管理員設置智慧選物頁面 URL',
     'float.tooltip': '來試試 infFITS 個人化推薦購物！',
-    'float.multiRouteTooltip': '選擇動線，或直接試試 AI 推薦動線',
     'float.openSmartSelection': '開啟智慧選物',
     'float.openSmartSelectionWith': '開啟智慧選物：{text}',
     'float.closeSmartSelection': '關閉智慧選物',
@@ -98,8 +97,6 @@ const PARENT_UI_MESSAGES = {
 
   'float.tooltip': 'Discover Your Personalized Picks with infFITS',
 
-  'float.multiRouteTooltip': 'Choose a route, or try the AI-recommended route',
-
   'float.openSmartSelection': 'Open Smart Selection',
 
   'float.openSmartSelectionWith': 'Open Smart Selection: {text}',
@@ -133,8 +130,6 @@ const PARENT_UI_MESSAGES = {
 
 /** @deprecated 請改用 parentUiT；保留供外部參考 */
 const FLOATING_TOOLTIP_TEXT = PARENT_UI_MESSAGES['zh-TW']['float.tooltip'];
-/** @deprecated 請改用 parentUiT；保留供外部參考 */
-const MULTI_ROUTE_FLOATING_TOOLTIP_TEXT = PARENT_UI_MESSAGES['zh-TW']['float.multiRouteTooltip'];
 
 function getParentUiLang(lang) {
   if (lang == null || String(lang).trim() === '') return PARENT_UI_DEFAULT_LANG;
@@ -3840,7 +3835,7 @@ const FLOATING_BTN_STYLE = `
 }
 .ai-pd-container__tooltip-panel-header {
   position: relative;
-  padding-right: 28px;
+  padding-right: 12px;
 }
 .ai-pd-container__tooltip-panel .ai-pd-container__tooltip-close {
   top: 0;
@@ -4175,9 +4170,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   // 未設屬性 → 預設文案；空字串 → 不顯示對話框；其餘 → 自訂文案
   _getTooltipText() {
     if (!this.hasAttribute('float-tooltip-text')) {
-      return this._isMultiRouteEnabled()
-        ? this._t('float.multiRouteTooltip')
-        : this._t('float.tooltip');
+      return this._t('float.tooltip');
     }
     return this.getAttribute('float-tooltip-text') || '';
   }
