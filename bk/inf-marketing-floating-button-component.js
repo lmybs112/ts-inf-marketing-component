@@ -141,7 +141,7 @@ const FLOATING_BTN_STYLE = `
   z-index: 2;
   width: max-content;
   max-width: min(300px, calc(100vw - 32px));
-  min-width: 200px;
+  min-width: 250px;
   padding-top: 15px;
   animation: ai-pd-tooltip-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
