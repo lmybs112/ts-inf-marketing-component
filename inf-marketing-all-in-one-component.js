@@ -4134,6 +4134,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     this._onRouteCardClick = this._onRouteCardClick.bind(this);
     this._isModalOpen = false; // 追蹤彈窗狀態
     this._hasResult = false; // 追蹤是否有搜尋結果
+    this._hasTrackedFloatLoad = false; // 頁面首次載入漂浮鈕是否已送 GA
     this._tooltipDismissed = false; // 本次瀏覽是否已關閉打字機對話框
     this._typewriterTimer = null; // 打字機計時器
     this._typewriterCompleted = false; // 打字機是否已跑完一次
@@ -5749,8 +5750,11 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 檢查時間有效性
     if (this.isValidTimeRange()) {
       this.style.display = 'block';
-      // 載入智慧選物：漂浮按鈕出現在畫面時
-      this._trackFloatGa4('load_float_button', 'float_load', 'load');
+      // 載入智慧選物：僅頁面首次顯示漂浮鈕時送出（顯示／隱藏切換不重複計）
+      if (!this._hasTrackedFloatLoad) {
+        this._hasTrackedFloatLoad = true;
+        this._trackFloatGa4('load_float_button', 'float_load', 'load');
+      }
       // 觸發顯示事件
       this.dispatchEvent(new CustomEvent('inf-marketing-float-button-show'));
     }
