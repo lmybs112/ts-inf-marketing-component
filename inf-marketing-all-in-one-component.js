@@ -5749,6 +5749,8 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     // 檢查時間有效性
     if (this.isValidTimeRange()) {
       this.style.display = 'block';
+      // 載入智慧選物：漂浮按鈕出現在畫面時
+      this._trackFloatGa4('load_float_button', 'float_load', 'load');
       // 觸發顯示事件
       this.dispatchEvent(new CustomEvent('inf-marketing-float-button-show'));
     }
