@@ -5892,18 +5892,9 @@ function ensureOuterGtag(ga) {
  */
 function resolveInfMarketingGaActionVersion(context) {
     var ctx = context || {};
-    var gaVersion = ctx.ga_version;
-    if (!gaVersion) gaVersion = window.__infMarketingCurrentGaVersion || '';
-    gaVersion = String(gaVersion).trim().toLowerCase();
-    if (gaVersion === 'v2') return 'v2';
-
-    var routeDisplayMode = ctx.route_display_mode;
-    if (!routeDisplayMode) routeDisplayMode = window.__infMarketingCurrentRouteDisplayMode || '';
-    routeDisplayMode = String(routeDisplayMode).trim().toLowerCase();
-    if (routeDisplayMode === 'nomedia-v2') return 'v2';
-
     var iframeUrl = ctx.iframe_url;
-    if (!iframeUrl) iframeUrl = window.__infMarketingCurrentIframeUrl || '';
+    if (!iframeUrl) iframeUrl = ctx.url;
+    if (!iframeUrl) iframeUrl = window.__infMarketingLoadedIframeUrl || '';
     iframeUrl = String(iframeUrl);
     if (/[?&]v=v2(?:&|$)/i.test(iframeUrl)) return 'v2';
 
@@ -6295,11 +6286,31 @@ class InfMarketingComponentManager {
         return url;
     }
 
-    _setCurrentGaEventContext(route, iframeUrl) {
-        const routeDisplayMode = route && route.RouteDisplayMode ? String(route.RouteDisplayMode) : '';
-        window.__infMarketingCurrentRouteDisplayMode = routeDisplayMode;
-        window.__infMarketingCurrentGaVersion = routeDisplayMode === 'nomedia-v2' ? 'v2' : '';
-        window.__infMarketingCurrentIframeUrl = iframeUrl ? String(iframeUrl) : '';
+    _setCurrentGaEventContext(iframeUrl) {
+        window.__infMarketingLoadedIframeUrl = iframeUrl ? String(iframeUrl) : '';
+    }
+
+    _bindModalIframeGaContextSync(modal) {
+        if (!modal || modal.__infGaContextSyncBound === true) return;
+        const syncFromEvent = (event) => {
+            const loadedUrl = event && event.detail && event.detail.url
+                ? String(event.detail.url)
+                : '';
+            if (loadedUrl) this._setCurrentGaEventContext(loadedUrl);
+        };
+        const syncFromReusedSet = (event) => {
+            if (!event || !event.detail || event.detail.reused !== true) return;
+            const reusedUrl = event.detail.url ? String(event.detail.url) : '';
+            if (reusedUrl) this._setCurrentGaEventContext(reusedUrl);
+        };
+        const clearLoadedContext = () => {
+            this._setCurrentGaEventContext('');
+        };
+        modal.addEventListener('inf-marketing-modal:iframe-loaded', syncFromEvent);
+        modal.addEventListener('inf-marketing-modal:iframe-set', syncFromReusedSet);
+        modal.addEventListener('inf-marketing-modal:iframe-error', clearLoadedContext);
+        modal.addEventListener('inf-marketing-modal:iframe-cleared', clearLoadedContext);
+        modal.__infGaContextSyncBound = true;
     }
 
     /**
@@ -6346,7 +6357,6 @@ class InfMarketingComponentManager {
             }
             this.route = routeProduct.Product;
             const iframeUrl = this.getRouteIframeUrl(this.route);
-            this._setCurrentGaEventContext(this.route, iframeUrl);
 
             if (this.currentComponent) {
                 this.currentComponent.setAttribute('iframe-id', this.route.Route);
@@ -6620,7 +6630,6 @@ class InfMarketingComponentManager {
         if (!this.route) return;
 
         const iframeUrl = this.getRouteIframeUrl(this.route);
-        this._setCurrentGaEventContext(this.route, iframeUrl);
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
@@ -6638,6 +6647,7 @@ class InfMarketingComponentManager {
         }
 
         modal.setAttribute('ui-lang', this._getUiLang());
+        this._bindModalIframeGaContextSync(modal);
 
         if (modal.setIframeConfig) {
             modal.setIframeConfig(this.getIframeConfigPayload());
