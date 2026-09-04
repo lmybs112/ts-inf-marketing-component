@@ -1751,7 +1751,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
     setupEventListeners() {
         const button = this.shadowRoot.querySelector('.inf-marketing-popup-banner');
         button.addEventListener('click', () => {
-            trackInfMarketingGa4('popup_banner_click', {
+            trackInfMarketingGa4('popup_banner_open', {
                 brand: this.getAttribute('brand') || '',
                 route: this.getAttribute('iframe-id') || '',
                 event_label: 'open_smart_selection',
@@ -1765,7 +1765,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         // 支援移動設備觸摸事件
         button.addEventListener('touchend', (e) => {
             e.preventDefault();
-            trackInfMarketingGa4('popup_banner_click', {
+            trackInfMarketingGa4('popup_banner_open', {
                 brand: this.getAttribute('brand') || '',
                 route: this.getAttribute('iframe-id') || '',
                 event_label: 'open_smart_selection',
@@ -1777,7 +1777,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
 
         const closeButton = this.shadowRoot.querySelector('.close-button');
         closeButton.addEventListener('click', () => {
-            trackInfMarketingGa4('popup_banner_click', {
+            trackInfMarketingGa4('popup_banner_close', {
                 brand: this.getAttribute('brand') || '',
                 route: this.getAttribute('iframe-id') || '',
                 event_label: 'close',
@@ -1789,7 +1789,7 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
         // 支援移動設備觸摸事件
         closeButton.addEventListener('touchend', (e) => {
             e.preventDefault();
-            trackInfMarketingGa4('popup_banner_click', {
+            trackInfMarketingGa4('popup_banner_close', {
                 brand: this.getAttribute('brand') || '',
                 route: this.getAttribute('iframe-id') || '',
                 event_label: 'close',
@@ -1992,6 +1992,12 @@ class InfMarketingPopupBannerComponent extends HTMLElement {
                     }
                 }
                 if (type === 'run_routeproduct_success') {
+                    trackInfMarketingGa4('recommendation_complete', {
+                        brand: this.getAttribute('brand') || '',
+                        route: this.getAttribute('iframe-id') || '',
+                        event_label: 'run_routeproduct_success',
+                        action: 'complete'
+                    });
                     // console.log('run_routeproduct_success');
                    window.showInfMarketing();
                 }
@@ -2654,6 +2660,12 @@ class InfMarketingSquareCardBannerComponent extends HTMLElement {
                     }
                 }
                 if (type === 'run_routeproduct_success') {
+                    trackInfMarketingGa4('recommendation_complete', {
+                        brand: this.getAttribute('brand') || '',
+                        route: this.getAttribute('iframe-id') || '',
+                        event_label: 'run_routeproduct_success',
+                        action: 'complete'
+                    });
                     // console.log('run_routeproduct_success');
                    window.showInfMarketing();
                 }
@@ -4450,7 +4462,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     if (this._guideActive && this._isMultiRouteGuideStep()) {
       return;
     }
-    this._trackFloatGa4('float_tooltip_click', 'float_tooltip_close', 'tooltip_close');
+    this._trackFloatGa4('float_tooltip_close', 'float_tooltip_close', 'tooltip_close');
     this._dismissTooltip();
   }
 
@@ -4541,7 +4553,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
   }
 
   _trackFloatTooltipGa4() {
-    this._trackFloatGa4('float_tooltip_click', 'float_tooltip_open', 'tooltip_open');
+    this._trackFloatGa4('float_tooltip_open', 'float_tooltip_open', 'tooltip_open');
   }
 
   // 由對話框開啟智慧選物（只開不關）
@@ -5129,6 +5141,12 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
           }
         }
         if (type === 'run_routeproduct_success') {
+            trackInfMarketingGa4('recommendation_complete', {
+              brand: this.getAttribute('brand') || '',
+              route: this.getAttribute('iframe-id') || '',
+              event_label: 'run_routeproduct_success',
+              action: 'complete'
+            });
             // console.log('run_routeproduct_success');
            window.showInfMarketing();
         }
@@ -5433,14 +5451,14 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
     const anchor = this.shadowRoot.querySelector('.ai-pd-container__anchor');
 
     if (this._modal.visible) {
-      this._trackFloatGa4('float_button_click', 'float_close', 'close');
+      this._trackFloatGa4('float_button_close', 'float_close', 'close');
       this._modal.hide();
       // 關閉 modal 不永久關閉 tooltip；關閉後由 hide 事件恢復顯示
       if (anchor) {
         anchor.classList.remove('ai-pd-container__anchor--modal-open');
       }
     } else {
-      this._trackFloatGa4('float_button_click', 'float_open', 'open');
+      this._trackFloatGa4('float_button_open', 'float_open', 'open');
       // 開啟 modal 才永久關閉本次瀏覽的打字機對話框
       this._dismissTooltip();
       // 檢查螢幕尺寸，只在平板以上才啟用對話框效果
