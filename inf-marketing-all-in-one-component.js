@@ -5886,19 +5886,47 @@ function ensureOuterGtag(ga) {
 }
 
 /**
- * 將 GA4 事件名稱統一加上 no-media 版本標記，方便跨版本觀測
+ * 解析事件命名版本（僅拉霸／no-media v2 事件加上 v2 標記）
+ * @param {Object} [context]
+ * @returns {''|'v2'}
+ */
+function resolveInfMarketingGaActionVersion(context) {
+    var ctx = context || {};
+    var gaVersion = ctx.ga_version;
+    if (!gaVersion) gaVersion = window.__infMarketingCurrentGaVersion || '';
+    gaVersion = String(gaVersion).trim().toLowerCase();
+    if (gaVersion === 'v2') return 'v2';
+
+    var routeDisplayMode = ctx.route_display_mode;
+    if (!routeDisplayMode) routeDisplayMode = window.__infMarketingCurrentRouteDisplayMode || '';
+    routeDisplayMode = String(routeDisplayMode).trim().toLowerCase();
+    if (routeDisplayMode === 'nomedia-v2') return 'v2';
+
+    var iframeUrl = ctx.iframe_url;
+    if (!iframeUrl) iframeUrl = window.__infMarketingCurrentIframeUrl || '';
+    iframeUrl = String(iframeUrl);
+    if (/[?&]v=v2(?:&|$)/i.test(iframeUrl)) return 'v2';
+
+    return '';
+}
+
+/**
+ * 依版本決定是否加上 v2 事件名稱標記
  * 命名格式：nomedia_v2_<原事件名稱>
  * @param {string} eventAction
+ * @param {Object} [context]
  * @returns {string}
  */
-function normalizeInfMarketingGaEventAction(eventAction) {
+function normalizeInfMarketingGaEventAction(eventAction, context) {
     if (!eventAction || typeof eventAction !== 'string') return '';
     var trimmed = eventAction.trim();
     if (!trimmed) return '';
     if (trimmed.indexOf('nomedia_v2_') === 0 || trimmed.indexOf('_v2_') !== -1 || /_v2$/i.test(trimmed)) {
         return trimmed;
     }
-    return 'nomedia_v2_' + trimmed;
+    var version = resolveInfMarketingGaActionVersion(context);
+    if (version === 'v2') return 'nomedia_v2_' + trimmed;
+    return trimmed;
 }
 
 /**
@@ -5916,9 +5944,9 @@ function normalizeInfMarketingGaEventAction(eventAction) {
  */
 function trackInfMarketingGa4(eventAction, detail) {
     try {
-        var normalizedEventAction = normalizeInfMarketingGaEventAction(eventAction);
-        if (!normalizedEventAction) return;
         detail = detail || {};
+        var normalizedEventAction = normalizeInfMarketingGaEventAction(eventAction, detail);
+        if (!normalizedEventAction) return;
         var measurementId = resolveGaMeasurementId(
             detail.measurementId || window.GA_MEASUREMENT_ID || ''
         );
@@ -5973,7 +6001,7 @@ function ensureInfMarketingGa4EventListener() {
         var data = event.data;
         if (!data || typeof data !== 'object') return;
         if (data.header !== 'GA4Event') return;
-        var normalizedEventAction = normalizeInfMarketingGaEventAction(data.event_action);
+        var normalizedEventAction = normalizeInfMarketingGaEventAction(data.event_action, data);
         if (!normalizedEventAction) return;
 
         var gaPayload = {
@@ -6264,6 +6292,13 @@ class InfMarketingComponentManager {
         return url;
     }
 
+    _setCurrentGaEventContext(route, iframeUrl) {
+        const routeDisplayMode = route && route.RouteDisplayMode ? String(route.RouteDisplayMode) : '';
+        window.__infMarketingCurrentRouteDisplayMode = routeDisplayMode;
+        window.__infMarketingCurrentGaVersion = routeDisplayMode === 'nomedia-v2' ? 'v2' : '';
+        window.__infMarketingCurrentIframeUrl = iframeUrl ? String(iframeUrl) : '';
+    }
+
     /**
      * 組裝傳入 iframe 的設定物件
      * @returns {Object}
@@ -6308,6 +6343,7 @@ class InfMarketingComponentManager {
             }
             this.route = routeProduct.Product;
             const iframeUrl = this.getRouteIframeUrl(this.route);
+            this._setCurrentGaEventContext(this.route, iframeUrl);
 
             if (this.currentComponent) {
                 this.currentComponent.setAttribute('iframe-id', this.route.Route);
@@ -6581,6 +6617,7 @@ class InfMarketingComponentManager {
         if (!this.route) return;
 
         const iframeUrl = this.getRouteIframeUrl(this.route);
+        this._setCurrentGaEventContext(this.route, iframeUrl);
         
         if (this.currentComponent.setModalIframeUrl) {
             this.currentComponent.setModalIframeUrl(iframeUrl);
