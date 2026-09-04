@@ -5912,7 +5912,7 @@ function resolveInfMarketingGaActionVersion(context) {
 
 /**
  * 依版本決定是否加上 v2 事件名稱標記
- * 命名格式：nomedia_v2_<原事件名稱>
+ * 命名格式：<原事件前綴>_v2_<原事件後綴>（例：popup_banner_v2_open）
  * @param {string} eventAction
  * @param {Object} [context]
  * @returns {string}
@@ -5921,11 +5921,22 @@ function normalizeInfMarketingGaEventAction(eventAction, context) {
     if (!eventAction || typeof eventAction !== 'string') return '';
     var trimmed = eventAction.trim();
     if (!trimmed) return '';
-    if (trimmed.indexOf('nomedia_v2_') === 0 || trimmed.indexOf('_v2_') !== -1 || /_v2$/i.test(trimmed)) {
+    if (trimmed.indexOf('_v2_') !== -1 || /_v2$/i.test(trimmed)) {
         return trimmed;
     }
     var version = resolveInfMarketingGaActionVersion(context);
-    if (version === 'v2') return 'nomedia_v2_' + trimmed;
+    if (version === 'v2') {
+        var normalizedLegacy = trimmed.indexOf('nomedia_v2_') === 0
+            ? trimmed.slice('nomedia_v2_'.length)
+            : trimmed;
+        var match = normalizedLegacy.match(/^(.*)_([^_]+)$/);
+        if (match) {
+            var baseName = match[1];
+            var suffix = match[2];
+            return baseName + '_v2_' + suffix;
+        }
+        return normalizedLegacy + '_v2';
+    }
     return trimmed;
 }
 
