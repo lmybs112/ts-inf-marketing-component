@@ -5886,6 +5886,22 @@ function ensureOuterGtag(ga) {
 }
 
 /**
+ * 將 GA4 事件名稱統一加上 no-media 版本標記，方便跨版本觀測
+ * 命名格式：nomedia_v2_<原事件名稱>
+ * @param {string} eventAction
+ * @returns {string}
+ */
+function normalizeInfMarketingGaEventAction(eventAction) {
+    if (!eventAction || typeof eventAction !== 'string') return '';
+    var trimmed = eventAction.trim();
+    if (!trimmed) return '';
+    if (trimmed.indexOf('nomedia_v2_') === 0 || trimmed.indexOf('_v2_') !== -1 || /_v2$/i.test(trimmed)) {
+        return trimmed;
+    }
+    return 'nomedia_v2_' + trimmed;
+}
+
+/**
  * 外層 GA4 事件發送（各元件入口共用）
  * @param {string} eventAction - gtag event 名稱
  * @param {Object} [detail]
@@ -5900,7 +5916,8 @@ function ensureOuterGtag(ga) {
  */
 function trackInfMarketingGa4(eventAction, detail) {
     try {
-        if (!eventAction) return;
+        var normalizedEventAction = normalizeInfMarketingGaEventAction(eventAction);
+        if (!normalizedEventAction) return;
         detail = detail || {};
         var measurementId = resolveGaMeasurementId(
             detail.measurementId || window.GA_MEASUREMENT_ID || ''
@@ -5929,7 +5946,7 @@ function trackInfMarketingGa4(eventAction, detail) {
                 }
             });
         }
-        window.gtag('event', eventAction, gaPayload);
+        window.gtag('event', normalizedEventAction, gaPayload);
     } catch (e) {
         console.warn('GA4 事件發送失敗:', eventAction, e);
     }
@@ -5956,7 +5973,8 @@ function ensureInfMarketingGa4EventListener() {
         var data = event.data;
         if (!data || typeof data !== 'object') return;
         if (data.header !== 'GA4Event') return;
-        if (!data.event_action) return;
+        var normalizedEventAction = normalizeInfMarketingGaEventAction(data.event_action);
+        if (!normalizedEventAction) return;
 
         var gaPayload = {
             event_category: data.event_category || 'inffits_route',
@@ -5987,7 +6005,7 @@ function ensureInfMarketingGa4EventListener() {
         }
 
         if (typeof window.gtag === 'function') {
-            window.gtag('event', data.event_action, gaPayload);
+            window.gtag('event', normalizedEventAction, gaPayload);
         }
     });
 }
