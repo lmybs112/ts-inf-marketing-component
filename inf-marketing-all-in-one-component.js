@@ -5755,7 +5755,7 @@ class InfMarketingFloatButtonComponent extends HTMLElement {
       // 載入智慧選物：僅頁面首次顯示漂浮鈕時送出（顯示／隱藏切換不重複計）
       if (!this._hasTrackedFloatLoad) {
         this._hasTrackedFloatLoad = true;
-        this._trackFloatGa4('load_float_button', 'float_load', 'load');
+        this._trackFloatGa4('float_button_load', 'float_load', 'load');
       }
       // 觸發顯示事件
       this.dispatchEvent(new CustomEvent('inf-marketing-float-button-show'));
