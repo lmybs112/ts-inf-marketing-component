@@ -5921,14 +5921,14 @@ function normalizeInfMarketingGaEventAction(eventAction, context) {
     if (!eventAction || typeof eventAction !== 'string') return '';
     var trimmed = eventAction.trim();
     if (!trimmed) return '';
-    if (trimmed.indexOf('_v2_') !== -1 || /_v2$/i.test(trimmed)) {
-        return trimmed;
+    var normalizedLegacy = trimmed.indexOf('nomedia_v2_') === 0
+        ? trimmed.slice('nomedia_v2_'.length)
+        : trimmed;
+    if (normalizedLegacy.indexOf('_v2_') !== -1 || /_v2$/i.test(normalizedLegacy)) {
+        return normalizedLegacy;
     }
     var version = resolveInfMarketingGaActionVersion(context);
     if (version === 'v2') {
-        var normalizedLegacy = trimmed.indexOf('nomedia_v2_') === 0
-            ? trimmed.slice('nomedia_v2_'.length)
-            : trimmed;
         var match = normalizedLegacy.match(/^(.*)_([^_]+)$/);
         if (match) {
             var baseName = match[1];
@@ -5937,7 +5937,7 @@ function normalizeInfMarketingGaEventAction(eventAction, context) {
         }
         return normalizedLegacy + '_v2';
     }
-    return trimmed;
+    return normalizedLegacy;
 }
 
 /**
