@@ -760,11 +760,12 @@ class InfMarketingModalComponent extends HTMLElement {
         // 檢查是否已經有相同的 URL 的 iframe
         const existingIframe = iframeContainer.querySelector('iframe');
         if (existingIframe && existingIframe.src === url && this.currentIframeUrl === url) {
-            // 如果 URL 相同且已存在，直接顯示現有的 iframe
+            // URL 相同：重用 DOM，但仍重送 from_preview（含 selection_restore）以同步續選進度
             iframeContainer.style.display = 'block';
             contentSlot.style.display = 'none';
+            this.sendIframeMessage(existingIframe);
             
-            // 派發 iframe 設置事件（重用現有 iframe，無需重新發送訊息）
+            // 派發 iframe 設置事件（重用現有 iframe）
             this.dispatchEvent(new CustomEvent(`${componentName}:iframe-set`, {
                 bubbles: true,
                 composed: true,
