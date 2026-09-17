@@ -5823,12 +5823,25 @@ var InfSelectionProgress = (function () {
         });
     }
 
-    function normalizeItem(data) {
-        var result = null;
+    function hasUsableResult(result) {
+        if (!result || typeof result !== 'object') return false;
+        if (Array.isArray(result.Item) && result.Item.length > 0) return true;
+        if (result.pools && typeof result.pools === 'object') return true;
+        return false;
+    }
+
+    function normalizeItem(data, previous) {
+        var result;
         if (Object.prototype.hasOwnProperty.call(data || {}, 'result')) {
             result = data.result;
         } else if (Object.prototype.hasOwnProperty.call(data || {}, 'Result')) {
             result = data.Result;
+        } else {
+            result = previous && previous.Result != null ? previous.Result : null;
+        }
+        // 新訊息沒帶／帶 null 時，保留既有 Result，避免多頁簽把已完成結果洗掉
+        if (!hasUsableResult(result) && previous && hasUsableResult(previous.Result)) {
+            result = previous.Result;
         }
         return {
             Route: data.route || data.Route || '',
@@ -5840,15 +5853,29 @@ var InfSelectionProgress = (function () {
     }
 
     /**
-     * 依 brand + route 取出還原資料（優先進行中 ORDER，其次已完成 RES）
-     * @returns {object|null}
+     * 依 brand + route 取出還原資料
+     * 優先：已完成且帶 Result → 進行中 ORDER → 已完成無 Result
      */
     function getRestore(brand, routeId) {
         if (!brand || !routeId) return null;
         var order = readList(orderKey(brand));
-        var idx = findIndexByRoute(order, routeId);
-        if (idx >= 0) {
-            var inProgress = order[idx];
+        var res = readList(resKey(brand));
+        var orderIdx = findIndexByRoute(order, routeId);
+        var resIdx = findIndexByRoute(res, routeId);
+        var inProgress = orderIdx >= 0 ? order[orderIdx] : null;
+        var done = resIdx >= 0 ? res[resIdx] : null;
+
+        if (done && hasUsableResult(done.Result)) {
+            return {
+                Route: done.Route,
+                TagGroups_order: done.TagGroups_order || [],
+                Record: done.Record || {},
+                Pinned: done.Pinned || {},
+                Result: done.Result,
+                status: 'completed'
+            };
+        }
+        if (inProgress) {
             return {
                 Route: inProgress.Route,
                 TagGroups_order: inProgress.TagGroups_order || [],
@@ -5858,10 +5885,7 @@ var InfSelectionProgress = (function () {
                 status: 'in_progress'
             };
         }
-        var res = readList(resKey(brand));
-        idx = findIndexByRoute(res, routeId);
-        if (idx >= 0) {
-            var done = res[idx];
+        if (done) {
             return {
                 Route: done.Route,
                 TagGroups_order: done.TagGroups_order || [],
@@ -5894,7 +5918,7 @@ var InfSelectionProgress = (function () {
         var list = readList(orderKey(brand));
         var idx = findIndexByRoute(list, item.Route);
         if (idx >= 0) {
-            list[idx] = item;
+            list[idx] = normalizeItem(item, list[idx]);
         } else {
             list.push(item);
         }
@@ -5916,7 +5940,7 @@ var InfSelectionProgress = (function () {
         var res = readList(resKey(brand));
         var idx = findIndexByRoute(res, item.Route);
         if (idx >= 0) {
-            res[idx] = item;
+            res[idx] = normalizeItem(item, res[idx]);
         } else {
             res.push(item);
         }
@@ -5932,19 +5956,29 @@ var InfSelectionProgress = (function () {
         var routeId = data.route;
         if (!brand || !routeId) return;
         var status = data.status || 'in_progress';
-        var item = normalizeItem(data);
 
         if (status === 'cleared') {
             removeFromList(brand, routeId, 'order');
             removeFromList(brand, routeId, 'res');
             return;
         }
+
+        var prevOrder = readList(orderKey(brand));
+        var prevRes = readList(resKey(brand));
+        var prev =
+            (findIndexByRoute(prevOrder, routeId) >= 0
+                ? prevOrder[findIndexByRoute(prevOrder, routeId)]
+                : null) ||
+            (findIndexByRoute(prevRes, routeId) >= 0
+                ? prevRes[findIndexByRoute(prevRes, routeId)]
+                : null);
+        var item = normalizeItem(data, prev);
+
         if (status === 'completed') {
             moveOrderToRes(brand, item);
             return;
         }
-        // in_progress：寫 ORDER，並清掉同 Route 的 RES（避免舊完成態覆蓋續選）
-        removeFromList(brand, routeId, 'res');
+        // in_progress：只更新 ORDER，不刪 RES（避免多頁簽把已完成結果洗掉）
         upsertOrder(brand, item);
     }
 
