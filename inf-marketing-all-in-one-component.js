@@ -853,6 +853,9 @@ class InfMarketingModalComponent extends HTMLElement {
         if (this.iframeConfig.lang) {
             iframe_preview_obj.lang = this.iframeConfig.lang;
         }
+        if (typeof InfSelectionProgress !== 'undefined' && InfSelectionProgress.attachRestore) {
+            InfSelectionProgress.attachRestore(iframe_preview_obj);
+        }
 
         try {
             iframe_container.postMessage(iframe_preview_obj, "*");
@@ -5770,6 +5773,196 @@ if (!customElements.get('inf-marketing-floating-button')) {
 // ==================== 管理器組件 ====================
 
 /**
+ * 選物進度：存於父站 localStorage（各電商站互不干擾；同品牌同站可續選／保留釘選）
+ */
+var InfSelectionProgress = (function () {
+    var ORDER_PREFIX = 'INFS_ROUTE_ORDER_';
+    var RES_PREFIX = 'INFS_ROUTE_RES_';
+
+    function safeParse(raw, fallback) {
+        try {
+            if (!raw) return fallback;
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : fallback;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function readList(key) {
+        try {
+            if (typeof localStorage === 'undefined') return [];
+            return safeParse(localStorage.getItem(key), []);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function writeList(key, list) {
+        try {
+            if (typeof localStorage === 'undefined') return;
+            localStorage.setItem(key, JSON.stringify(list || []));
+        } catch (e) {
+            console.warn('InfSelectionProgress write 失敗:', e);
+        }
+    }
+
+    function orderKey(brand) {
+        return ORDER_PREFIX + brand;
+    }
+
+    function resKey(brand) {
+        return RES_PREFIX + brand;
+    }
+
+    function findIndexByRoute(list, routeId) {
+        if (!Array.isArray(list) || !routeId) return -1;
+        return list.findIndex(function (item) {
+            return item && String(item.Route) === String(routeId);
+        });
+    }
+
+    function normalizeItem(data) {
+        return {
+            Route: data.route || data.Route || '',
+            TagGroups_order: data.tagGroupsOrder || data.TagGroups_order || [],
+            Record: data.record || data.Record || {},
+            Pinned: data.pinned || data.Pinned || {}
+        };
+    }
+
+    /**
+     * 依 brand + route 取出還原資料（優先進行中 ORDER，其次已完成 RES）
+     * @returns {object|null}
+     */
+    function getRestore(brand, routeId) {
+        if (!brand || !routeId) return null;
+        var order = readList(orderKey(brand));
+        var idx = findIndexByRoute(order, routeId);
+        if (idx >= 0) {
+            var inProgress = order[idx];
+            return {
+                Route: inProgress.Route,
+                TagGroups_order: inProgress.TagGroups_order || [],
+                Record: inProgress.Record || {},
+                Pinned: inProgress.Pinned || {},
+                status: 'in_progress'
+            };
+        }
+        var res = readList(resKey(brand));
+        idx = findIndexByRoute(res, routeId);
+        if (idx >= 0) {
+            var done = res[idx];
+            return {
+                Route: done.Route,
+                TagGroups_order: done.TagGroups_order || [],
+                Record: done.Record || {},
+                Pinned: done.Pinned || {},
+                status: 'completed'
+            };
+        }
+        return null;
+    }
+
+    /**
+     * 將 selection_restore 附到 from_preview payload
+     */
+    function attachRestore(payload) {
+        if (!payload || typeof payload !== 'object') return payload;
+        var brand = payload.brand || '';
+        var routeId = payload.id || '';
+        var restore = getRestore(brand, routeId);
+        if (restore) {
+            payload.selection_restore = restore;
+        } else {
+            delete payload.selection_restore;
+        }
+        return payload;
+    }
+
+    function upsertOrder(brand, item) {
+        var list = readList(orderKey(brand));
+        var idx = findIndexByRoute(list, item.Route);
+        if (idx >= 0) {
+            list[idx] = item;
+        } else {
+            list.push(item);
+        }
+        writeList(orderKey(brand), list);
+    }
+
+    function removeFromList(brand, routeId, which) {
+        var key = which === 'res' ? resKey(brand) : orderKey(brand);
+        var list = readList(key);
+        var idx = findIndexByRoute(list, routeId);
+        if (idx >= 0) {
+            list.splice(idx, 1);
+            writeList(key, list);
+        }
+    }
+
+    function moveOrderToRes(brand, item) {
+        removeFromList(brand, item.Route, 'order');
+        var res = readList(resKey(brand));
+        var idx = findIndexByRoute(res, item.Route);
+        if (idx >= 0) {
+            res[idx] = item;
+        } else {
+            res.push(item);
+        }
+        writeList(resKey(brand), res);
+    }
+
+    /**
+     * 處理 iframe selection_progress
+     */
+    function handleMessage(data) {
+        if (!data || data.type !== 'selection_progress') return;
+        var brand = data.brand;
+        var routeId = data.route;
+        if (!brand || !routeId) return;
+        var status = data.status || 'in_progress';
+        var item = normalizeItem(data);
+
+        if (status === 'cleared') {
+            removeFromList(brand, routeId, 'order');
+            removeFromList(brand, routeId, 'res');
+            return;
+        }
+        if (status === 'completed') {
+            moveOrderToRes(brand, item);
+            return;
+        }
+        // in_progress：寫 ORDER，並清掉同 Route 的 RES（避免舊完成態覆蓋續選）
+        removeFromList(brand, routeId, 'res');
+        upsertOrder(brand, item);
+    }
+
+    function bindGlobalListener() {
+        if (typeof window === 'undefined') return;
+        if (window.__INFS_SELECTION_PROGRESS_BOUND__) return;
+        window.__INFS_SELECTION_PROGRESS_BOUND__ = true;
+        window.addEventListener('message', function (event) {
+            try {
+                if (event.data && event.data.type === 'selection_progress') {
+                    handleMessage(event.data);
+                }
+            } catch (e) {
+                console.warn('InfSelectionProgress listener 錯誤:', e);
+            }
+        });
+    }
+
+    bindGlobalListener();
+
+    return {
+        getRestore: getRestore,
+        attachRestore: attachRestore,
+        handleMessage: handleMessage
+    };
+})();
+
+/**
  * 從 localStorage 讀取訪客／會員識別（GVID / LGVID / MRID）
  * @returns {{MRID: string, GVID: string, LGVID: string}}
  */
@@ -6337,6 +6530,9 @@ class InfMarketingComponentManager {
         if (Object.prototype.hasOwnProperty.call(this.iframeParams || {}, 'lang')) {
             var normalizedLang = normalizeIframeLang(this.iframeParams.lang);
             if (normalizedLang) payload.lang = normalizedLang;
+        }
+        if (typeof InfSelectionProgress !== 'undefined' && InfSelectionProgress.attachRestore) {
+            InfSelectionProgress.attachRestore(payload);
         }
         return payload;
     }
