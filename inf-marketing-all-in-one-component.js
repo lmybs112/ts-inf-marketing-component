@@ -5824,11 +5824,18 @@ var InfSelectionProgress = (function () {
     }
 
     function normalizeItem(data) {
+        var result = null;
+        if (Object.prototype.hasOwnProperty.call(data || {}, 'result')) {
+            result = data.result;
+        } else if (Object.prototype.hasOwnProperty.call(data || {}, 'Result')) {
+            result = data.Result;
+        }
         return {
             Route: data.route || data.Route || '',
             TagGroups_order: data.tagGroupsOrder || data.TagGroups_order || [],
             Record: data.record || data.Record || {},
-            Pinned: data.pinned || data.Pinned || {}
+            Pinned: data.pinned || data.Pinned || {},
+            Result: result
         };
     }
 
@@ -5847,6 +5854,7 @@ var InfSelectionProgress = (function () {
                 TagGroups_order: inProgress.TagGroups_order || [],
                 Record: inProgress.Record || {},
                 Pinned: inProgress.Pinned || {},
+                Result: inProgress.Result || null,
                 status: 'in_progress'
             };
         }
@@ -5859,6 +5867,7 @@ var InfSelectionProgress = (function () {
                 TagGroups_order: done.TagGroups_order || [],
                 Record: done.Record || {},
                 Pinned: done.Pinned || {},
+                Result: done.Result || null,
                 status: 'completed'
             };
         }
